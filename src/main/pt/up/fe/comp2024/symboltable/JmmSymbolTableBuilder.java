@@ -23,13 +23,27 @@ public class JmmSymbolTableBuilder {
         var classDecl = root.getJmmChild(0);
         SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
         String className = classDecl.get("name");
+        String superClass = classDecl.get("super");
+
 
         var methods = buildMethods(classDecl);
+        var fields = buildFields(classDecl);
         var returnTypes = buildReturnTypes(classDecl);
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
+        var imports = buildImports(classDecl);
 
-        return new JmmSymbolTable(className, methods, returnTypes, params, locals);
+        return new JmmSymbolTable(className, superClass, methods, fields, imports, returnTypes, params, locals);
+    }
+
+    private static List<Symbol> buildFields(JmmNode classDecl) {
+        return null;
+    }
+
+    private static List<String> buildImports(JmmNode classDecl) {
+        return classDecl.getChildren(METHOD_DECL).stream()
+                .map(imports -> imports.get("name"))
+                .toList();
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
