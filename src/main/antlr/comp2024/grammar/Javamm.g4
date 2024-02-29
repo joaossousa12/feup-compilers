@@ -48,6 +48,8 @@ FALSE : 'false' ;
 BOOLEAN : 'boolean';
 ID : [a-zA-Z_$][a-zA-Z_$0-9]* ;
 
+COMMENT_MULTILINE : '/*' .*? '*/' -> skip;
+COMMENT_EOL : '//' .*? '\n' -> skip;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
@@ -55,12 +57,12 @@ program
     ;
 
 importDecl
-    : IMPORT ID (MEMBERCALL ID)* SEMI
+    : IMPORT value+=ID (MEMBERCALL value+=ID)* SEMI
     ;
 
 
 classDecl
-    : CLASS name=ID (EXTENDS ID)?
+    : CLASS className=ID (EXTENDS extendClassName= ID)?
         LCURLY
         varDecl*
         methodDecl*
@@ -96,12 +98,12 @@ param
     ;
 
 stmt
-    : LCURLY stmt* RCURLY #StmtScope //
+    : expr SEMI #ExprStmt //
+    | LCURLY stmt* RCURLY #StmtScope //
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfElseStmt //
     | WHILE LPAREN expr RPAREN stmt #WhileStmt //
-    | expr SEMI #ExprStmt //
-    | ID EQUALS expr SEMI #AssignStmt //
-    | ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
+    | var= ID EQUALS expr SEMI #AssignStmt //
+    | var= ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
     | RETURN expr SEMI #ReturnStmt
     ;
 
@@ -110,20 +112,19 @@ expr
     | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
     | expr LSQPAREN expr RSQPAREN #ArrayAccess //
     | expr MEMBERCALL LENGTH #Length //
-    | expr MEMBERCALL ID LPAREN (expr (COMMA expr)*)? RPAREN #ArrayAccess //
+    | expr MEMBERCALL name= ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
     | expr LPAREN expr RPAREN #MemberCall //
-    | value= THIS #This //
+    | value= THIS #Object //
     | value= NOT expr #Negation //
     | NEW INT LSQPAREN expr RSQPAREN #NewArray //
-    | NEW ID LPAREN RPAREN #NewClass //
-    | expr op= (MUL | DIV) expr #BinaryExpr //
-    | expr op= (ADD | SUB) expr #BinaryExpr //
-    | expr op= (LESS | GREATER) expr #BinaryExpr //
-    | expr op= AND expr #BinaryExpr //
-    | expr op= OR expr #BinaryExpr //
+    | NEW name= ID LPAREN RPAREN #NewClass //
+    | expr op= (MUL | DIV) expr #BinaryOp //
+    | expr op= (ADD | SUB) expr #BinaryOp //
+    | expr op= (LESS | GREATER) expr #BinaryOp //
+    | expr op= AND expr #BinaryOp //
+    | expr op= OR expr #BinaryOp //
     | value= INTEGER #IntegerLiteral //
-    | value= TRUE #BooleanLiteral //
-    | value= FALSE #BooleanLiteral  //
+    | value= (TRUE | FALSE) #BooleanLiteral //
     | name= ID #VarRefExpr //
     ;
 
