@@ -28,8 +28,20 @@ NEW : 'new' ;
 IF : 'if' ;
 ELSE : 'else' ;
 WHILE : 'while' ;
+FOR : 'for' ;
 THIS : 'this' ;
 ELLIPSIS : '...' ;
+EQ : '==';
+NEQ : '!=';
+LEQ : '<=';
+GEQ : '>=';
+MULTEQ : '*=';
+DIVEQ : '/=';
+PLUSEQ : '+=';
+MINUSEQ : '-=';
+INCREMENT : '++';
+DECREMENT : '--';
+MOD : '%' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -102,6 +114,7 @@ stmt
     | LCURLY stmt* RCURLY #StmtScope //
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfElseStmt //
     | WHILE LPAREN expr RPAREN stmt #WhileStmt //
+    | FOR LPAREN stmt expr SEMI expr RPAREN stmt #ForStmt //
     | var= ID EQUALS expr SEMI #AssignStmt //
     | var= ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
     | RETURN expr SEMI #ReturnStmt
@@ -112,20 +125,24 @@ expr
     | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
     | expr LSQPAREN expr RSQPAREN #ArrayAccess //
     | expr MEMBERCALL LENGTH #Length //
+    | className= ID expr #ClassInst //
     | expr MEMBERCALL name= ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
     | expr LPAREN expr RPAREN #MemberCall //
     | value= THIS #Object //
     | value= NOT expr #Negation //
     | NEW INT LSQPAREN expr RSQPAREN #NewArray //
     | NEW name= ID LPAREN RPAREN #NewClass //
-    | expr op= (MUL | DIV) expr #BinaryOp //
+    | expr op= (MUL | DIV | MOD) expr #BinaryOp //
     | expr op= (ADD | SUB) expr #BinaryOp //
-    | expr op= (LESS | GREATER) expr #BinaryOp //
+    | expr op= (LESS | GREATER | LEQ | GEQ) expr #BinaryOp //
+    | expr op= (EQ | NEQ) expr #BinaryOp //
     | expr op= AND expr #BinaryOp //
     | expr op= OR expr #BinaryOp //
+    | expr op= (MULTEQ | DIVEQ | PLUSEQ | MINUSEQ) expr #BinaryOp //
     | value= INTEGER #IntegerLiteral //
     | value= (TRUE | FALSE) #BooleanLiteral //
     | name= ID #VarRefExpr //
+    | value= ID op=(INCREMENT | DECREMENT) #IncrDecr //
     ;
 
 
