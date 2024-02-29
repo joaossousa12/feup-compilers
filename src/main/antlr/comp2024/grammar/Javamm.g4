@@ -72,12 +72,12 @@ varDecl
     ;
 
 type
-    : type LSQPAREN RSQPAREN //
-    | INT ELLIPSIS //
-    | BOOLEAN //
-    | INT //
-    | STRING //
-    | ID //
+    : type LSQPAREN RSQPAREN #Array //
+    | INT ELLIPSIS #EllipsisType //
+    | BOOLEAN #BooleanType //
+    | INT #IntegerType //
+    | STRING #StringType //
+    | name= ID #ClassType //
     ;
 
 methodDecl locals[boolean isPublic=false]
