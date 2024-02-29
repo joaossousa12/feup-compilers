@@ -112,6 +112,7 @@ expr
     | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
     | expr LSQPAREN expr RSQPAREN #ArrayAccess //
     | expr MEMBERCALL LENGTH #Length //
+    | className= ID expr #ClassInst //
     | expr MEMBERCALL name= ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
     | expr LPAREN expr RPAREN #MemberCall //
     | value= THIS #Object //
