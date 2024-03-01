@@ -75,17 +75,17 @@ varDecl
 
 type
     : type LSQPAREN RSQPAREN #Array //
-    | INT ELLIPSIS #Ellipsis //
-    | BOOLEAN #Boolean //
-    | INT #Integer //
-    | STRING #String //
-    | ID #Id //
+    | INT ELLIPSIS #EllipsisType //
+    | BOOLEAN #BooleanType //
+    | INT #IntegerType //
+    | STRING #StringType //
+    | name= ID #ClassType //
     ;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
-        type name=ID
-        LPAREN param RPAREN
+        returnType name=ID
+        LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
     | (PUBLIC {$isPublic=true;})?
        STATIC VOID MAIN
@@ -93,8 +93,12 @@ methodDecl locals[boolean isPublic=false]
        LCURLY varDecl* stmt* RCURLY
     ;
 
+returnType
+    : name= type
+    ;
+
 param
-    : (type name=ID (COMMA type name=ID)*)?
+    : type name=ID
     ;
 
 stmt
@@ -112,7 +116,6 @@ expr
     | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
     | expr LSQPAREN expr RSQPAREN #ArrayAccess //
     | expr MEMBERCALL LENGTH #Length //
-    | className= ID expr #ClassInst //
     | expr MEMBERCALL name= ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
     | expr LPAREN expr RPAREN #MemberCall //
     | value= THIS #Object //
