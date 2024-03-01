@@ -84,8 +84,8 @@ type
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
-        type name=ID
-        LPAREN param RPAREN
+        returnType name=ID
+        LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
     | (PUBLIC {$isPublic=true;})?
        STATIC VOID MAIN
@@ -93,8 +93,12 @@ methodDecl locals[boolean isPublic=false]
        LCURLY varDecl* stmt* RCURLY
     ;
 
+returnType
+    : name= type
+    ;
+
 param
-    : (type name=ID (COMMA type name=ID)*)?
+    : type name=ID
     ;
 
 stmt
