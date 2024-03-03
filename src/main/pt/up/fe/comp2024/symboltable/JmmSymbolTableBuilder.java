@@ -63,6 +63,13 @@ public class JmmSymbolTableBuilder {
         String type;
 
         for (JmmNode methodDecl: classDecl.getChildren(METHOD_DECL)){
+
+            // check if return type is void
+            if(methodDecl.getNumChildren() == 0){
+                map.put(methodDecl.get("name"), new Type("void", false));
+                continue;
+            }
+
             JmmNode returnDecl = methodDecl.getChild(0);
             if (Objects.equals(returnDecl.getChild(0).getKind(), "Array")) {
 
