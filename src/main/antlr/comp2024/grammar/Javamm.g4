@@ -88,7 +88,7 @@ methodDecl locals[boolean isPublic=false]
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
     | (PUBLIC {$isPublic=true;})?
-       STATIC VOID MAIN
+       STATIC VOID name=MAIN
        LPAREN STRING LSQPAREN RSQPAREN ID RPAREN
        LCURLY varDecl* stmt* RCURLY
     ;

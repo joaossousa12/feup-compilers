@@ -17,7 +17,15 @@ public class JmmSymbolTableBuilder {
     public static JmmSymbolTable build(JmmNode root) {
 
         var classDecl = root.getJmmChild(0);
-        SpecsCheck.checkArgument(CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
+
+        // prevent classDecl variable from being ImportDecl instead of ClassDecl
+        for(JmmNode node: root.getChildren())
+            if (Objects.equals(node.getKind(), "ClassDecl"))
+                classDecl = node;
+
+        JmmNode finalClassDecl = classDecl;
+        SpecsCheck.checkArgument(CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + finalClassDecl);
+
         String className = classDecl.get("className");
         String superClass = null;
 
@@ -36,13 +44,48 @@ public class JmmSymbolTableBuilder {
     }
 
     private static List<Symbol> buildFields(JmmNode classDecl) {
-        return null;
+        List<Symbol> result = new ArrayList<>();
+        String type;
+        for(JmmNode node : classDecl.getChildren(VAR_DECL)){
+            JmmNode varDecl = node.getChild(0);
+            if(Objects.equals(varDecl.getKind(), "Array")){
+
+                type = switch (varDecl.getChild(0).getKind()) {
+                    case "IntegerType" -> "int";
+                    case "StringType" -> "String";
+                    case "BooleanType" -> "boolean";
+                    case "EllipsisType" -> "int...";
+                    case "ClassType" -> varDecl.getChild(0).get("name");
+                    default -> null;
+                };
+
+                result.add(new Symbol(new Type(type, true), node.get("name")));
+
+            } else {
+                type = switch (varDecl.getKind()) {
+                    case "IntegerType" -> "int";
+                    case "StringType" -> "String";
+                    case "BooleanType" -> "boolean";
+                    case "EllipsisType" -> "int...";
+                    case "ClassType" -> varDecl.get("name");
+                    default -> null;
+                };
+
+                result.add(new Symbol(new Type(type, false), node.get("name")));
+            }
+        }
+        return result;
     }
 
     private static List<String> buildImports(JmmNode classDecl) {
-        return classDecl.getChildren(METHOD_DECL).stream()
-                .map(imports -> imports.get("name"))
-                .toList();
+        JmmNode root = classDecl.getParent();
+        List<String> result = new ArrayList<>();
+        for(JmmNode node : root.getChildren()){
+            if(Objects.equals(node.getKind(), "ImportDecl")){
+                result.add(node.get("value"));
+            }
+        }
+        return result;
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
@@ -50,8 +93,14 @@ public class JmmSymbolTableBuilder {
         String type;
 
         for (JmmNode methodDecl: classDecl.getChildren(METHOD_DECL)){
+
+            // check if return type is void
+            if(methodDecl.getNumChildren() == 0){
+                map.put(methodDecl.get("name"), new Type("void", false));
+                continue;
+            }
+
             JmmNode returnDecl = methodDecl.getChild(0);
-            type = null;
             if (Objects.equals(returnDecl.getChild(0).getKind(), "Array")) {
 
                 type = switch (returnDecl.getChild(0).getChild(0).getKind()) {
@@ -60,7 +109,7 @@ public class JmmSymbolTableBuilder {
                     case "BooleanType" -> "boolean";
                     case "EllipsisType" -> "int...";
                     case "ClassType" -> returnDecl.getChild(0).getChild(0).get("name");
-                    default -> type;
+                    default -> null;
                 };
 
                 map.put(methodDecl.get("name"), new Type(type, true));
@@ -73,7 +122,7 @@ public class JmmSymbolTableBuilder {
                     case "BooleanType" -> "boolean";
                     case "EllipsisType" -> "int...";
                     case "ClassType" -> returnDecl.getChild(0).get("name");
-                    default -> type;
+                    default -> null;
                 };
 
                 map.put(methodDecl.get("name"), new Type(type, false));
@@ -91,7 +140,6 @@ public class JmmSymbolTableBuilder {
             List<Symbol> params = new ArrayList<>();
             for (JmmNode paramDecl : methodDecl.getChildren(PARAM)) {
                 JmmNode typeNode = paramDecl.getChild(0);
-                type = null;
                 if(Objects.equals(typeNode.getKind(), "Array")){
                     type = switch (typeNode.getChild(0).getKind()) {
                         case "IntegerType" -> "int";
@@ -99,7 +147,7 @@ public class JmmSymbolTableBuilder {
                         case "BooleanType" -> "boolean";
                         case "EllipsisType" -> "int...";
                         case "ClassType" -> typeNode.getChild(0).get("name");
-                        default -> type;
+                        default -> null;
                     };
 
                     params.add(new Symbol(new Type(type, true), paramDecl.get("name")));
@@ -110,7 +158,7 @@ public class JmmSymbolTableBuilder {
                         case "BooleanType" -> "boolean";
                         case "EllipsisType" -> "int...";
                         case "ClassType" -> typeNode.get("name");
-                        default -> type;
+                        default -> null;
                     };
 
                     params.add(new Symbol(new Type(type, false), paramDecl.get("name")));
@@ -123,13 +171,12 @@ public class JmmSymbolTableBuilder {
     }
 
     private static Map<String, List<Symbol>> buildLocals(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, List<Symbol>> map = new HashMap<>();
 
-
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), getLocalsList(method)));
+        for(JmmNode methodDecl: classDecl.getChildren(METHOD_DECL)){
+            List<Symbol> result = getLocalsList(methodDecl);
+            map.put(methodDecl.get("name"), result);
+        }
 
         return map;
     }
@@ -143,13 +190,37 @@ public class JmmSymbolTableBuilder {
 
 
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
-        // TODO: Simple implementation that needs to be expanded
+        List<Symbol> locals = new ArrayList<>();
+        String type;
+        for(JmmNode node : methodDecl.getChildren(VAR_DECL)){
+            JmmNode varDecl = node.getChild(0);
+            if(Objects.equals(varDecl.getKind(), "Array")){
 
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
+                type = switch (varDecl.getChild(0).getKind()) {
+                    case "IntegerType" -> "int";
+                    case "StringType" -> "String";
+                    case "BooleanType" -> "boolean";
+                    case "EllipsisType" -> "int...";
+                    case "ClassType" -> varDecl.getChild(0).get("name");
+                    default -> null;
+                };
 
-        return methodDecl.getChildren(VAR_DECL).stream()
-                .map(varDecl -> new Symbol(intType, varDecl.get("name")))
-                .toList();
+                locals.add(new Symbol(new Type(type, true), node.get("name")));
+
+            } else {
+                type = switch (varDecl.getKind()) {
+                    case "IntegerType" -> "int";
+                    case "StringType" -> "String";
+                    case "BooleanType" -> "boolean";
+                    case "EllipsisType" -> "int...";
+                    case "ClassType" -> varDecl.get("name");
+                    default -> null;
+                };
+
+                locals.add(new Symbol(new Type(type, false), node.get("name")));
+            }
+        }
+        return locals;
     }
 
 }
