@@ -70,7 +70,7 @@ classDecl
     ;
 
 varDecl
-    : type name=ID SEMI
+    : type (name=ID | name=MAIN) SEMI
     ;
 
 type
