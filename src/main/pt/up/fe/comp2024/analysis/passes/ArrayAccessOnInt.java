@@ -28,6 +28,18 @@ public class ArrayAccessOnInt extends AnalysisVisitor{
     private Void visitArrayAccess(JmmNode arrayAccess, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
+        String variable = arrayAccess.getChild(0).get("name");
+        JmmNode methodDecl = arrayAccess;
+        while (!Objects.equals(methodDecl.getKind(), "MethodDecl")) {
+            methodDecl = methodDecl.getParent();
+        }
+
+        for(JmmNode param : methodDecl.getChildren("Param")){
+            if(Objects.equals(param.get("name"), variable)){
+                if(Objects.equals(param.getChild(0).getKind(), "EllipsisType")) return null; // made this so it passes the varargs tests
+            }
+        }
+
         JmmNode array = arrayAccess.getChild(0);
 
         if(array.getNumChildren() < 1 || !Objects.equals(array.getChild(0).getKind(), "Array")){

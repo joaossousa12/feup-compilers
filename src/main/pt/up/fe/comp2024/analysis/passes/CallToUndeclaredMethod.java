@@ -10,14 +10,13 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
 import java.util.Objects;
-
-public class ArrayIndexNotInt extends AnalysisVisitor{
+public class CallToUndeclaredMethod extends AnalysisVisitor {
     private String currentMethod;
 
     @Override
     public void buildVisitor(){
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
-        addVisit("ArrayAccess", this::visitArrayIndex);
+        addVisit("FunctionCall", this::visitMethodCall);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -25,18 +24,26 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
         return null;
     }
 
-    private Void visitArrayIndex(JmmNode arrayIndex, SymbolTable table){
+    private Void visitMethodCall(JmmNode methodCall, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
-        JmmNode index = arrayIndex.getChild(1);
+        String methodName = methodCall.get("name");
+        int imports_size = table.getImports().size();
+        boolean found = false;
 
-        if(!Objects.equals(index.getKind(), "IntegerLiteral")){
-            var message = "Array index is not integer type.";
+        for(JmmNode node : methodCall.getParent().getParent().getParent().getChildren()){
+            if(Objects.equals(node.getKind(), "MethodDecl") && Objects.equals(node.get("name"), methodName)){
+                found = true;
+                break;
+            }
+        }
+
+        if(!found && imports_size == 0){
             addReport(Report.newError(
                     Stage.SEMANTIC,
-                    NodeUtils.getLine(arrayIndex),
-                    NodeUtils.getColumn(arrayIndex),
-                    message,
+                    NodeUtils.getLine(methodCall),
+                    NodeUtils.getColumn(methodCall),
+                    "Call to undeclared method '" + methodName + "'",
                     null)
             );
         }

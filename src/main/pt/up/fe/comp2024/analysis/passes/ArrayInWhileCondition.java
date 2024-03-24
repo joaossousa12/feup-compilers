@@ -10,14 +10,13 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
 import java.util.Objects;
-
-public class ArrayIndexNotInt extends AnalysisVisitor{
+public class ArrayInWhileCondition extends AnalysisVisitor{
     private String currentMethod;
 
     @Override
     public void buildVisitor(){
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
-        addVisit("ArrayAccess", this::visitArrayIndex);
+        addVisit("WhileStmt", this::visitWhile);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -25,22 +24,29 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
         return null;
     }
 
-    private Void visitArrayIndex(JmmNode arrayIndex, SymbolTable table){
+    private Void visitWhile(JmmNode whileNode, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
-        JmmNode index = arrayIndex.getChild(1);
+        JmmNode condition = whileNode.getChild(0);
+        boolean array = false;
+        if(Objects.equals(condition.getKind(), "VarRefExpr")){
+            String variable = condition.get("name");
+            for(JmmNode decl : condition.getParent().getParent().getChildren()){
+                if(Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(variable)){
+                    array = Objects.equals(decl.getChild(0).getKind(), "Array");
+                }
+            }
+        }
 
-        if(!Objects.equals(index.getKind(), "IntegerLiteral")){
-            var message = "Array index is not integer type.";
+        if(array){
             addReport(Report.newError(
                     Stage.SEMANTIC,
-                    NodeUtils.getLine(arrayIndex),
-                    NodeUtils.getColumn(arrayIndex),
-                    message,
+                    NodeUtils.getLine(whileNode),
+                    NodeUtils.getColumn(whileNode),
+                    "Array as while condition",
                     null)
             );
         }
-
         return null;
     }
 }
