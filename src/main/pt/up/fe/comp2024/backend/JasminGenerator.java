@@ -61,6 +61,7 @@ public class JasminGenerator {
             code = generators.apply(ollirResult.getOllirClass());
         }
 
+        //System.out.println(code);
         return code;
     }
 
@@ -73,8 +74,9 @@ public class JasminGenerator {
         var className = ollirResult.getOllirClass().getClassName();
         code.append(".class ").append(className).append(NL).append(NL);
 
-        // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL);
+        String superClassName = classUnit.getSuperClass() == null ? "java/lang/Object" : classUnit.getSuperClass();
+
+        code.append(".super ").append(superClassName).append(NL);
 
         // generate a single constructor method
         var defaultConstructor = """
@@ -119,6 +121,13 @@ public class JasminGenerator {
         var methodName = method.getMethodName();
 
         // TODO: Hardcoded param types and return type, needs to be expanded
+
+        var returnType = method.getReturnType().toString();
+        var params = new StringBuilder();
+
+        for (Element param : method.getParams()) {
+            params.append(param.getType().toString());
+        }
         code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
 
         // Add limits
@@ -176,6 +185,8 @@ public class JasminGenerator {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         return "iload " + reg + NL;
+
+        //TODO verify
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -202,8 +213,21 @@ public class JasminGenerator {
 
         // TODO: Hardcoded to int return type, needs to be expanded
 
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        if (returnInst.hasReturnValue()) {
+            code.append(generators.apply(returnInst.getOperand()));
+        }
+
+        if (returnInst.getOperand() != null) {
+            ElementType type = returnInst.getOperand().getType().getTypeOfElement();
+
+            if  (type == ElementType.INT32 || type == ElementType.BOOLEAN) {
+                code.append("i");
+            } else {
+                code.append("a");
+            }
+        }
+        System.out.println("return");
+        code.append("return").append(NL);
 
         return code.toString();
     }

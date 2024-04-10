@@ -3,6 +3,9 @@ import Quicksort;
 
 class SymbolTable extends Quicksort {
 
+	int intField;
+	boolean boolField;
+
 	public int method1() {
 	    int intLocal1;
 	    boolean boolLocal1;
