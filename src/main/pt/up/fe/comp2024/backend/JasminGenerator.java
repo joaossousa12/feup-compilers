@@ -61,7 +61,7 @@ public class JasminGenerator {
             code = generators.apply(ollirResult.getOllirClass());
         }
 
-        //System.out.println(code);
+        System.out.println(code);
         return code;
     }
 
@@ -71,22 +71,40 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // generate class name
+        //var className = currentMethod.getOllirClass().getClassName();
+
         var className = ollirResult.getOllirClass().getClassName();
-        code.append(".class ").append(className).append(NL).append(NL);
+        //code.append(".class ").append(className).append(NL).append(NL);
 
         String superClassName = classUnit.getSuperClass() == null ? "java/lang/Object" : classUnit.getSuperClass();
+        code.append(".class public ").append(className).append(NL);
 
         code.append(".super ").append(superClassName).append(NL);
+        //class name
+        (ollirResult.getOllirClass().getFields()).forEach(field -> {
+            code.append(".field ");
+            if (field.getFieldAccessModifier() == AccessModifier.PUBLIC) {
+                code.append("public ");
+            }
+            code.append(field.getFieldName()).append(" ").append(getJasminType(field.getFieldType())).append(NL);
+        });
 
         // generate a single constructor method
-        var defaultConstructor = """
-                ;default constructor
-                .method public <init>()V
-                    aload_0
-                    invokespecial java/lang/Object/<init>()V
-                    return
-                .end method
-                """;
+        var defaultConstructor = new StringBuilder();
+        defaultConstructor.append("; Default constructor").append(NL);
+        defaultConstructor.append(".method public <init>()V").append(NL);
+        defaultConstructor.append("    aload_0").append(NL);
+
+        if (classUnit.getSuperClass() != null) {
+            // Call superclass constructor
+            defaultConstructor.append("    invokespecial ").append(classUnit.getSuperClass()).append("/<init>()V").append(NL);
+        } else {
+            // Call java/lang/Object constructor
+            defaultConstructor.append("    invokespecial java/lang/Object/<init>()V").append(NL);
+        }
+
+        defaultConstructor.append("    return").append(NL);
+        defaultConstructor.append(".end method").append(NL);
         code.append(defaultConstructor);
 
         // generate code for all other methods
@@ -125,10 +143,28 @@ public class JasminGenerator {
         var returnType = method.getReturnType().toString();
         var params = new StringBuilder();
 
-        for (Element param : method.getParams()) {
-            params.append(param.getType().toString());
+       for (Element param : method.getParams()) {
+           //check param type from getJasminType()
+           params.append(getJasminType(param.getType()));
+
+            //params.append(param.getType().toString());
         }
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+
+        ElementType type = method.getReturnType().getTypeOfElement();
+    /*
+        if (type == ElementType.INT32 || type == ElementType.BOOLEAN) {
+            code.append("i");
+        }
+        else {
+            code.append("a");
+        }
+*/      if (methodName.equals("main")) {
+            code.append(".method public static main([Ljava/lang/String;)V").append(NL);
+        } else {
+            code.append(".method ").append(modifier).append(methodName).append("(").append(params).append(")").append(getJasminType(method.getReturnType())).append(NL);
+        }
+        //code.append(".method ").append(modifier).append(methodName).append("(").append(params).append(")").append(getJasminType(method.getReturnType())).append(NL);
+        //code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -137,9 +173,13 @@ public class JasminGenerator {
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-
             code.append(instCode);
         }
+
+        if (method.getInstructions().size() == 0) {
+            code.append(TAB).append("return").append(NL);
+        }
+
 
         code.append(".end method\n");
 
@@ -168,7 +208,7 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        code.append("istore_").append(reg).append(NL);
 
         return code.toString();
     }
@@ -184,9 +224,34 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload " + reg + NL;
+        return "iload_" + reg + NL;
 
         //TODO verify
+    }
+
+    private String getJasminType(Type type) {
+        var code = new StringBuilder();
+
+        ElementType elemType = type.getTypeOfElement();
+        /*if (type.getTypeOfElement() == ElementType.ARRAYREF) {
+            code.append("[");
+            elemType = ((ArrayType) type).getArrayType();
+        }
+        */
+        switch (elemType) {
+            case INT32 -> code.append("I");
+            case BOOLEAN -> code.append("Z");
+            case VOID -> code.append("V");
+            case STRING -> code.append("Ljava/lang/String;");
+            case OBJECTREF -> {
+                assert type instanceof ClassType;
+                String className = ((ClassType) type).getName();
+                code.append("L").append(className).append(";");
+            }
+            case ARRAYREF -> code.append("[").append(getJasminType(((ArrayType) type).getElementType()));
+            default -> throw new NotImplementedException("Type" + elemType + "not implemented.");
+        }
+        return code.toString();
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -200,6 +265,10 @@ public class JasminGenerator {
         var op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
             case MUL -> "imul";
+            case SUB -> "isub";
+            case DIV -> "idiv";
+            case AND -> "iand";
+            case OR -> "ior";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -216,17 +285,16 @@ public class JasminGenerator {
         if (returnInst.hasReturnValue()) {
             code.append(generators.apply(returnInst.getOperand()));
         }
-
+        //getJasminType()
         if (returnInst.getOperand() != null) {
             ElementType type = returnInst.getOperand().getType().getTypeOfElement();
-
             if  (type == ElementType.INT32 || type == ElementType.BOOLEAN) {
                 code.append("i");
             } else {
                 code.append("a");
             }
         }
-        System.out.println("return");
+        //System.out.println("return");
         code.append("return").append(NL);
 
         return code.toString();

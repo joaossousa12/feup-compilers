@@ -1,27 +1,23 @@
+import io;
+import Quicksort;
 
-class MethodsAndFields{
-	int field1;
-	boolean field2;
-	MethodsAndFields field3;
+class SymbolTable extends Quicksort {
 
-	public int getField1(){
-		return field1;
+	public int method1() {
+	    int intLocal1;
+	    boolean boolLocal1;
+
+		intLocal1 = 0;
+		boolLocal1 = 1;
+
+		return 0;
 	}
 
-	public boolean getField2(){
-		return field2;
+	public boolean method2(int intParam1, boolean boolParam1) {
+		return boolParam1;
 	}
 
-	public MethodsAndFields getField3(){
-		return field3;
+	public static void main(String[] args) {
 	}
 
-	public int[] all(int a, boolean b, MethodsAndFields maf){
-		int[] c;
-		return c;
-	}
-
-	public static void main(String[] args){
-
-	}
 }
