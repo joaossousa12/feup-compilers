@@ -36,8 +36,8 @@ public class AssignIntToBool extends AnalysisVisitor{
             }
         }
         if(Objects.equals(type, "BooleanType")){
-            if(Objects.equals(assign.getChild(0).getKind(), "IntegerLiteral")){
-                var message = "Assigning an integer to a boolean.";
+            if(Objects.equals(assign.getChild(0).getKind(), "IntegerLiteral") || Objects.equals(assign.getChild(0).getKind(), "NewClass")){
+                var message = "Assigning an integer or an object to a boolean.";
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(assign),

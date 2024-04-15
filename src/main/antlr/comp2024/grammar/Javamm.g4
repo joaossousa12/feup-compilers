@@ -70,7 +70,7 @@ classDecl
     ;
 
 varDecl
-    : type (name=ID | name=MAIN) SEMI
+    : type (name=ID | name=MAIN | name=LENGTH) SEMI
     ;
 
 type
@@ -106,7 +106,7 @@ stmt
     | LCURLY stmt* RCURLY #StmtScope //
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfElseStmt //
     | WHILE LPAREN expr RPAREN stmt #WhileStmt //
-    | var= ID EQUALS expr SEMI #AssignStmt //
+    | (var= ID | var= LENGTH | var= MAIN) EQUALS expr SEMI #AssignStmt //
     | var= ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
     | RETURN expr SEMI #ReturnStmt
     ;
@@ -129,7 +129,7 @@ expr
     | expr op= OR expr #BinaryOp //
     | value= INTEGER #IntegerLiteral //
     | value= (TRUE | FALSE) #BooleanLiteral //
-    | name= ID #VarRefExpr //
+    | (name= ID | name= LENGTH | name= MAIN) #VarRefExpr //
     ;
 
 

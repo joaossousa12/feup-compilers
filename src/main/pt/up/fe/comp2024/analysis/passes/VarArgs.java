@@ -5,7 +5,6 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
-import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
@@ -54,7 +53,7 @@ public class VarArgs extends AnalysisVisitor{
         if(ellipsis && numberOfParams > 1){
             int index = 0;
 
-            //TODO dont know if this is correct because of teacher message on slack about vargs tests
+            //TODO dont know if this is correct because of teacher message on slack about varargs tests
             if(Objects.equals(methodCall.getChild(0).getKind(), "Object") && Objects.equals(methodCall.getChild(0).get("value"), "this") && methodCall.getChild(0).getNumChildren() == 0){
                 index = 1;
             }
@@ -69,6 +68,24 @@ public class VarArgs extends AnalysisVisitor{
                 );
             }
 
+        }
+
+        else if(ellipsis && numberOfParams == 1){
+            String type = methodCall.getChild(1).getKind();
+            for(JmmNode node : methodCall.getChildren()){
+                if(Objects.equals(node.getKind(), "Object")){
+                    continue;
+                }
+                else if(!Objects.equals(node.getKind(), type)){
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(methodCall),
+                            NodeUtils.getColumn(methodCall),
+                            "More than one type on varargs method",
+                            null)
+                    );
+                }
+            }
         }
 
         return null;

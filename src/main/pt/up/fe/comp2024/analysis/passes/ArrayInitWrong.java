@@ -27,6 +27,9 @@ public class ArrayInitWrong extends AnalysisVisitor{
     private Void visitArrayInit(JmmNode arrayInit, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
+        if(Objects.equals(arrayInit.getParent().getKind(), "FunctionCall") || Objects.equals(arrayInit.getParent().getKind(), "Length"))
+            return null;
+
         String variable = arrayInit.getParent().get("var");
         String type = null;
         boolean array = false;
