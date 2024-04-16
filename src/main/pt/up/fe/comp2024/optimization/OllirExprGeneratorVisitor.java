@@ -6,6 +6,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.security.PrivateKey;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -25,6 +27,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     @Override
     protected void buildVisitor() {
+        addVisit(BOOLEAN_LITERAL, this::visitBool);
+        addVisit(FUNC_CALL, this::visitFCall);
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
@@ -32,7 +36,27 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         setDefaultVisit(this::defaultVisit);
     }
 
+    private OllirExprResult visitFCall(JmmNode node,Void unused){
+        StringBuilder code = new StringBuilder("invokestatic");
+        code.append("(");
+        code.append((node.getChild(0).get("name")));
+        code.append(", ");
+        code.append("\""+node.get("name")+"\", ");
+        code.append(visit(node.getChild(1)).getCode());
+        code.append(")");
+        code.append(".V");
+        code.append(END_STMT);
+        String stringCode = code.toString();
+        return new OllirExprResult(stringCode);
 
+    }
+    private OllirExprResult visitBool(JmmNode node, Void unused){
+        var bool = new Type(TypeUtils.getBoolTypeName(), false);
+        String ollirBoolType = OptUtils.toOllirType(bool);
+        String code = node.get("value") + ollirBoolType;
+        return new OllirExprResult(code);
+
+    }
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
         var intType = new Type(TypeUtils.getIntTypeName(), false);
         String ollirIntType = OptUtils.toOllirType(intType);

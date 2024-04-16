@@ -47,6 +47,10 @@ public class OptUtils {
 
         String type = "." + switch (typeName) {
             case "int" -> "i32";
+            case "String" -> "String";
+            case "Boolean" -> "bool";
+            case "void" -> "V";
+            case "import " -> "import ";
             default -> throw new NotImplementedException(typeName);
         };
 

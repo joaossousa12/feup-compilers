@@ -7,10 +7,32 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
+    private static final String BOOL_TYPE_NAME = "boolean";
+
+    private static final String STRING_TYPE_NAME = "String";
+
+    private static final String VOID_TYPE_NAME = "void";
+
+    private static final String IMPORT_TYPE_NAME = "import ";
+
+
+
+
+
+
 
     public static String getIntTypeName() {
         return INT_TYPE_NAME;
     }
+    public static String getBoolTypeName() {return BOOL_TYPE_NAME;}
+
+    public static String getStringTypeName() {return STRING_TYPE_NAME;}
+    public static String getImportTypeName() {return IMPORT_TYPE_NAME;}
+
+
+    public static String getVoidTypeName() {return VOID_TYPE_NAME;}
+
+
 
     /**
      * Gets the {@link Type} of an arbitrary expression.
