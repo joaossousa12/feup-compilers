@@ -36,10 +36,16 @@ public class ObjectAssignment extends AnalysisVisitor {
 
             for(JmmNode decl : assign.getParent().getChildren()){
                 if(Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(assign.get("var"))){
-                    type1=decl.getChild(0).get("name");
+                    if(Objects.equals(decl.getChild(0).getKind(), "ClassType"))
+                        type1=decl.getChild(0).get("name");
+                    else
+                        type1 = decl.getChild(0).getKind();
                 }
                 if(Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(assign.getChild(0).get("name"))){
-                    type2=decl.getChild(0).get("name");
+                    if(Objects.equals(decl.getChild(0).getKind(), "ClassType"))
+                        type2=decl.getChild(0).get("name");
+                    else
+                        type2 = decl.getChild(0).getKind();
                 }
             }
 
