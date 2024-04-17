@@ -3,10 +3,12 @@ package pt.up.fe.comp2024.optimization;
 import org.specs.comp.ollir.Instruction;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.TYPE;
@@ -33,11 +35,29 @@ public class OptUtils {
     public static String toOllirType(JmmNode typeNode) {
         String typeName = typeNode.get("name");
 
-        return toOllirType(typeName);
+        String array = "";
+
+        if(Objects.equals(typeNode.getKind(), "Array")){
+            array = ".array";
+        }
+
+        String ollirType = "." + typeName;
+        if(Objects.equals(typeNode.getKind(), "ClassType")){
+            ollirType = toOllirType(typeName);
+        }
+
+        return array + ollirType;
     }
 
     public static String toOllirType(Type type) {
-        return toOllirType(type.getName());
+        String typeName = type.getName();
+
+        if (typeName.equals("int") || typeName.equals("boolean") || typeName.equals("String") || typeName.equals("void"))
+            return (type.isArray() ? ".array" : "") + toOllirType(typeName);
+
+        else
+            return (type.isArray() ? ".array" : "") + "." + typeName;
+
     }
 
     private static String toOllirType(String typeName) {
