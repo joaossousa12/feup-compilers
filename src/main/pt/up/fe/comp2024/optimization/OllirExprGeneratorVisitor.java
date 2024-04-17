@@ -28,7 +28,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     @Override
     protected void buildVisitor() {
         addVisit(BOOLEAN_LITERAL, this::visitBool);
-        addVisit(FUNC_CALL, this::visitFCall);
+        addVisit("FunctionCall", this::visitFCall);
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
