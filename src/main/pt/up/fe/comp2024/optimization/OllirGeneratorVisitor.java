@@ -49,10 +49,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit("String", this::visitString);
         addVisit("Void",this::visitVoid);
         addVisit("import",this::visitImport);
+        addVisit("ExprStmt",this::visitExprStmt);
 
         setDefaultVisit(this::defaultVisit);
     }
-    private String visitVoid(JmmNode node, Void unused){
+
+    private String visitExprStmt(JmmNode node, Void unused){
+        return exprVisitor.visit(node.getJmmChild(0)).getCode();
+
+    }
+
+        private String visitVoid(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
 
         var voidType = new Type(TypeUtils.getVoidTypeName(),false);
@@ -230,13 +237,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         if(params.isEmpty() && Objects.equals(node.get("name"), "main"))
             code.append("ret.V ;").append(NL);
-        else{
-            JmmNode returnStmt = node.getChild(node.getNumChildren() - 1);
-            if(Objects.equals(returnStmt.getChild(0).getKind(), "IntegerLiteral"))
-                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("value")).append(".i32;").append(NL);
-            else
-                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("value")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
-        }
+            else{
+                JmmNode returnStmt = node.getChild(node.getNumChildren() - 1);
+                if(Objects.equals(returnStmt.getChild(0).getKind(), "IntegerLiteral"))
+                    code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("value")).append(".i32;").append(NL);
+                else
+                    code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
+            }
 
         code.append(R_BRACKET);
         code.append(NL);
