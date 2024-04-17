@@ -177,18 +177,19 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitMethodDecl(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder(".method ");
+        boolean isStatic = NodeUtils.getBooleanAttribute(node, "isStatic", "false");
 
+        if (isStatic) {
+            code.append("static ");
+        }
         boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
 
         if (isPublic) {
             code.append("public ");
         }
 
-        boolean isStatic = NodeUtils.getBooleanAttribute(node, "isStatic", "false");
 
-        if (isStatic) {
-            code.append("static ");
-        }
+
 
         // name
         var name = node.get("name");
@@ -207,7 +208,15 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(")");
 
         // type
-        var retType = OptUtils.toOllirType(node.getChild(0));
+
+
+        String retType;
+        if(node.getNumChildren() == 0){
+            retType = "void";
+        }
+        else{
+            retType = node.getJmmChild(0).get("name");
+        }
         code.append(retType);
         code.append(L_BRACKET);
 
