@@ -46,9 +46,9 @@ public class OptUtils {
     private static String toOllirType(String typeName) {
 
         String type = "." + switch (typeName) {
-            case "int" -> "i32";
-            case "String" -> "String";
-            case "Boolean" -> "bool";
+            case "IntegerType" -> "i32";
+            case "StringType" -> "String";
+            case "BooleanType" -> "bool";
             case "void" -> "V";
             case "import " -> "import ";
             default -> throw new NotImplementedException(typeName);
