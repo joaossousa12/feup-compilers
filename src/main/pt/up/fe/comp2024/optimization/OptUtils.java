@@ -35,18 +35,11 @@ public class OptUtils {
     public static String toOllirType(JmmNode typeNode) {
         String typeName = typeNode.get("name");
 
-        String array = "";
+        String isArray = Objects.equals(typeNode.getKind(), "Array") ? ".array" : "";
 
-        if(Objects.equals(typeNode.getKind(), "Array")){
-            array = ".array";
-        }
+        String ollirType = Objects.equals(typeNode.getKind(), "ClassType") ? "." + typeName : toOllirType(typeName);
 
-        String ollirType = "." + typeName;
-        if(Objects.equals(typeNode.getKind(), "ClassType")){
-            ollirType = toOllirType(typeName);
-        }
-
-        return array + ollirType;
+        return isArray + ollirType;
     }
 
     public static String toOllirType(Type type) {
