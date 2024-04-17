@@ -82,19 +82,24 @@ type
     | name= ID #ClassType //
     ;
 
-methodDecl locals[boolean isPublic=false]
+methodDecl locals[boolean isPublic=false, boolean isStatic=false]
     : (PUBLIC {$isPublic=true;})?
         returnType name=ID
         LPAREN (param (COMMA param)*)? RPAREN
-        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
+        LCURLY varDecl* stmt* returnStmt RCURLY
     | (PUBLIC {$isPublic=true;})?
-       STATIC VOID name=MAIN
+       (STATIC {$isStatic=true;})?
+       VOID name=MAIN
        LPAREN STRING LSQPAREN RSQPAREN ID RPAREN
        LCURLY varDecl* stmt* RCURLY
     ;
 
 returnType
     : name= type
+    ;
+
+returnStmt
+    : RETURN expr SEMI
     ;
 
 param
@@ -108,7 +113,6 @@ stmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt //
     | (var= ID | var= LENGTH | var= MAIN) EQUALS expr SEMI #AssignStmt //
     | var= ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
-    | RETURN expr SEMI #ReturnStmt
     ;
 
 expr
