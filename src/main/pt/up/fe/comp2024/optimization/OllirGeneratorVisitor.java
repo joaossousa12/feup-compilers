@@ -176,75 +176,53 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitMethodDecl(JmmNode node, Void unused) {
-        StringBuilder code = new StringBuilder();
+        StringBuilder code = new StringBuilder(".method ");
+
+        boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
+
+        if (isPublic) {
+            code.append("public ");
+        }
+
+        boolean isStatic = NodeUtils.getBooleanAttribute(node, "isStatic", "false");
+
+        if (isStatic) {
+            code.append("static ");
+        }
 
         // name
         var name = node.get("name");
         code.append(name);
 
-        if(PARAM.check(node.getChild(1))) {
+        // params
+        code.append("(");
+        var params  = node.getChildren(PARAM);
+        for (int i = 0; i < params.size(); i++) {
+            var paramCode = visit(params.get(i));
+            code.append(paramCode);
 
-            code.append("(");
-            var paramCode = table.getParameters(name);
-            for(Symbol param : paramCode) {
-                code.append(param.getName());
-                if(param.getType().isArray())
-                    code.append(".array");
-                var paramType = OptUtils.toOllirType(param.getType());
-                code.append(paramType);
-                if(!(paramCode.indexOf(param) == (paramCode.size() -1))){
-                    code.append(", ");
-                }
-            }
-            code.append(")");
-
-        } else {
-            code.append("()");
+            var after = i == params.size() - 1 ? "" : ", ";
+            code.append(after);
         }
+        code.append(")");
 
-
-
-        var retType = visit(node.getJmmChild(0));
+        // type
+        var retType = OptUtils.toOllirType(node.getChild(0));
         code.append(retType);
         code.append(L_BRACKET);
 
-        if(PARAM.check(node.getChild(1))) {
-            var afterParam = 1;
-            for (int i = afterParam; i < node.getNumChildren(); i++) {
-                var child = node.getJmmChild(i);
-                var funcCall = child.getChild(0);
-                if(!(VAR_DECL.check(child)) && !(PARAM.check(child))) {
-                    var childCode = visit(child);
-                    code.append(childCode);
-                }
-                if(FUNC_CALL.check(funcCall)) {
-                    var childCode = exprVisitor.visit(funcCall);
-                    code.append(childCode);
-                }
-            }
-        } else {
-            var afterParam = 1;
-            for (int i = afterParam; i < node.getNumChildren(); i++) {
-                var child = node.getJmmChild(i);
-                var funcCall = child.getChild(0);
-
-                if(!(VAR_DECL.check(child))) {
-                    var childCode = visit(child);
-                    code.append(childCode);
-                }
-                if(FUNC_CALL.check(funcCall)) {
-                    var childCode = exprVisitor.visit(funcCall);
-                    code.append(childCode.getCode());
-                }
-            }
+        var numParams = table.getParameters(name).size();
+        var numLocals = table.getLocalVariables(name).size();
+        // rest of its children stmts
+        for (int i = (1 + numParams + numLocals); i < node.getChildren().size(); i++) {
+            var childStmt = node.getChild(i);
+            var childCode = visit(childStmt);
+            code.append(childCode);
         }
-
-
 
         code.append(R_BRACKET);
         code.append(NL);
 
-        System.out.print(code);
         return code.toString();
     }
 
