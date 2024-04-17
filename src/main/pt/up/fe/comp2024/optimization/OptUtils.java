@@ -31,9 +31,6 @@ public class OptUtils {
     }
 
     public static String toOllirType(JmmNode typeNode) {
-
-        TYPE.checkOrThrow(typeNode);
-
         String typeName = typeNode.get("name");
 
         return toOllirType(typeName);
@@ -48,7 +45,7 @@ public class OptUtils {
         String type = "." + switch (typeName) {
             case "int" -> "i32";
             case "String" -> "String";
-            case "Boolean" -> "bool";
+            case "boolean" -> "bool";
             case "void" -> "V";
             case "import " -> "import ";
             default -> typeName;

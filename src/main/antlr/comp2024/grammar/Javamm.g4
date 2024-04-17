@@ -75,10 +75,10 @@ varDecl
 
 type
     : type LSQPAREN RSQPAREN #Array //
-    | INT ELLIPSIS #EllipsisType //
-    | BOOLEAN #BooleanType //
-    | INT #IntegerType //
-    | STRING #StringType //
+    | INT name=ELLIPSIS #EllipsisType //
+    | name=BOOLEAN #BooleanType //
+    | name=INT #IntegerType //
+    | name=STRING #StringType //
     | name= ID #ClassType //
     ;
 
