@@ -27,6 +27,7 @@ public enum Kind {
     VOID,
     INTEGER,
     BOOLEAN,
+    MAIN_METH,
     IMPORT_DECL,
     VAR_REF_EXPR;
 
