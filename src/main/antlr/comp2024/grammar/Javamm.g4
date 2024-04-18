@@ -57,12 +57,12 @@ program
     ;
 
 importDecl
-    : IMPORT value+=ID (MEMBERCALL value+=ID)* SEMI
+    : IMPORT (value+=ID | value+=MAIN | value+=LENGTH) (MEMBERCALL (value+=ID | value+=MAIN | value+=LENGTH))* SEMI
     ;
 
 
 classDecl
-    : CLASS className=ID (EXTENDS extendClassName= ID)?
+    : CLASS (className=ID | className=MAIN | className=LENGTH) (EXTENDS( extendClassName= ID | extendClassName=MAIN | extendClassName=LENGTH))?
         LCURLY
         varDecl*
         methodDecl*
@@ -79,7 +79,7 @@ type
     | name=BOOLEAN #BooleanType //
     | name=INT #IntegerType //
     | name=STRING #StringType //
-    | name= ID #ClassType //
+    | (name=ID| name= LENGTH | name= MAIN) #ClassType //
     ;
 
 methodDecl locals[boolean isPublic=false, boolean isStatic=false]
@@ -103,7 +103,7 @@ returnStmt
     ;
 
 param
-    : type name=ID
+    : type (name=ID| name= LENGTH | name= MAIN)
     ;
 
 stmt
@@ -112,7 +112,7 @@ stmt
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfElseStmt //
     | WHILE LPAREN expr RPAREN stmt #WhileStmt //
     | (var= ID | var= LENGTH | var= MAIN) EQUALS expr SEMI #AssignStmt //
-    | var= ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
+    | (var= ID | var= LENGTH | var= MAIN) LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
     ;
 
 expr
