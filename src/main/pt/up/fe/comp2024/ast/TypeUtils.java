@@ -4,6 +4,8 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
+import java.util.Objects;
+
 public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
@@ -51,6 +53,7 @@ public class TypeUtils {
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case NEW_CLASS -> new Type(expr.get("name"), false);
+            case FUNCTION_CALL -> getFuncCallType(expr);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 
@@ -74,6 +77,24 @@ public class TypeUtils {
     private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
         // TODO: Simple implementation that needs to be expanded
         return new Type(INT_TYPE_NAME, false);
+    }
+
+    private static Type getFuncCallType(JmmNode callExpr) {
+        String methodName = callExpr.get("name");
+
+        JmmNode classDecl = callExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+        String retType = null;
+        for(JmmNode method : classDecl.getChildren()){
+            if(Objects.equals(method.get("name"), methodName)){
+                retType = method.getChild(0).getChild(0).getKind();
+            }
+        }
+
+
+        return new Type(retType, false);
     }
 
 

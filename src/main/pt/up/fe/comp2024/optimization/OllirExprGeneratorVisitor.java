@@ -87,7 +87,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             code.append(OptUtils.toOllirType(retNode));
 
 
-            code.append(END_STMT);
+            //code.append(END_STMT);
             String stringCode = code.toString();
             return new OllirExprResult(stringCode);
         }
