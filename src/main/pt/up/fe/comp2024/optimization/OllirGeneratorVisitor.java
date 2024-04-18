@@ -118,9 +118,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
         String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
         for (int i = 0; i < table.getLocalVariables(methodName).size(); i++) {
-            if (table.getLocalVariables(methodName).get(i).getName().equals(node.get("var"))) {
-                code.append(table.getLocalVariables(methodName).get(i).getName());
-                code.append(OptUtils.toOllirType(table.getLocalVariables(methodName).get(i).getType()));
+            if(!Objects.equals(node.getChild(0).getKind(), "BinaryOp")) {
+                if (table.getLocalVariables(methodName).get(i).getName().equals(node.get("var"))) {
+                    code.append(table.getLocalVariables(methodName).get(i).getName());
+                    code.append(OptUtils.toOllirType(table.getLocalVariables(methodName).get(i).getType()));
+                }
             }
         }
 
@@ -132,8 +134,16 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         String typeString = OptUtils.toOllirType(thisType);
 
 
-        code.append(SPACE);
 
+        if(Objects.equals(node.getChild(0).getKind(), "BinaryOp")){
+            for (int i = 0; i < table.getLocalVariables(methodName).size(); i++) {
+                if (table.getLocalVariables(methodName).get(i).getName().equals(node.get("var"))) {
+                    code.append(table.getLocalVariables(methodName).get(i).getName());
+                    code.append(OptUtils.toOllirType(table.getLocalVariables(methodName).get(i).getType()));
+                }
+            }
+        }
+        code.append(SPACE);
         code.append(ASSIGN);
         code.append(typeString);
         code.append(SPACE);
@@ -241,6 +251,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 JmmNode returnStmt = node.getChild(node.getNumChildren() - 1);
                 if(Objects.equals(returnStmt.getChild(0).getKind(), "IntegerLiteral"))
                     code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("value")).append(".i32;").append(NL);
+                else if(Objects.equals(returnStmt.getChild(0).getKind(), "BinaryOp")) {
+                    var rhs = exprVisitor.visit(returnStmt.getJmmChild(0));
+                    code.append(rhs.getComputation());
+                    code.append("ret");
+                    Type retType = TypeUtils.getExprType(returnStmt.getChild(0), table);
+                    code.append(OptUtils.toOllirType(retType)).append(" ");
+                    code.append(rhs.getCode()).append(";\n");
+                }
                 else
                     code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
             }

@@ -7,6 +7,7 @@ import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.security.PrivateKey;
+import java.util.Objects;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
 
@@ -30,7 +31,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(BOOLEAN_LITERAL, this::visitBool);
         addVisit("FunctionCall", this::visitFCall);
         addVisit(VAR_REF_EXPR, this::visitVarRef);
-        addVisit(BINARY_EXPR, this::visitBinExpr);
+        addVisit("BinaryOp", this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
 
         setDefaultVisit(this::defaultVisit);
@@ -77,7 +78,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(rhs.getComputation());
 
         // code to compute self
-        Type resType = TypeUtils.getExprType(node, table);
+        Type resType = new Type("boolean", false);
+        if(Objects.equals(node.get("op"), "+") || Objects.equals(node.get("op"), "-") || Objects.equals(node.get("op"), "*") || Objects.equals(node.get("op"), "/")){
+            resType = new Type("int", false);
+        }
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
 
@@ -85,7 +89,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 .append(ASSIGN).append(resOllirType).append(SPACE)
                 .append(lhs.getCode()).append(SPACE);
 
-        Type type = TypeUtils.getExprType(node, table);
+        Type type = new Type("boolean", false);
+        if(Objects.equals(node.get("op"), "+") || Objects.equals(node.get("op"), "-") || Objects.equals(node.get("op"), "*") || Objects.equals(node.get("op"), "/")){
+            type = new Type("int", false);
+        }
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
                 .append(rhs.getCode()).append(END_STMT);
 
