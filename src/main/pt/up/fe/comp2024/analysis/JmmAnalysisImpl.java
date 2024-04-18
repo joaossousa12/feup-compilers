@@ -23,7 +23,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
         this.analysisPasses = List.of(new UndeclaredVariable(), new DifferentTypeOp(), new ArrayIndexNotInt(),
                 new ArrayAccessOnInt(), new AssignIntToBool(), new ObjectAssignment(), new ArrayInitWrong(),
                 new IntInIfCondition(), new ArrayInWhileCondition(), new CallToUndeclaredMethod(), new VarArgs(),
-                new MemberAccessOnInt(), new IncompatibleReturn(), new IncompatibleArguments());
+                new MemberAccessOnInt(), new IncompatibleReturn(), new IncompatibleArguments(), new FieldInStaticInvalid());
     }
 
     @Override
