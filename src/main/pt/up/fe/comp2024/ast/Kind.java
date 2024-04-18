@@ -20,7 +20,7 @@ public enum Kind {
     BINARY_OP,
 
     BOOLEAN_LITERAL,
-    FUNC_CALL,
+    FUNCTION_CALL,
     STRING_LITERAL,
 
     NEW_CLASS,
