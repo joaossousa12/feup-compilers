@@ -37,8 +37,18 @@ public class FieldInStaticInvalid extends  AnalysisVisitor{
             for (Symbol symbol : fields) {
                 fieldNames.add(symbol.getName());
             }
-            for(JmmNode node : methodDecl.getChildren()){
-                if(Objects.equals(node.getKind(), "AssignStmt")){
+            for(JmmNode node : methodDecl.getDescendants()){
+                if(Objects.equals(node.getKind(), "VarRefExpr")){
+                    if(fieldNames.contains(node.get("name")))
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(methodDecl),
+                                NodeUtils.getColumn(methodDecl),
+                                "Field in static method",
+                                null)
+                        );
+                }
+                else if(Objects.equals(node.getKind(), "AssignStmt")){
                     if(fieldNames.contains(node.get("var")))
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
@@ -63,7 +73,6 @@ public class FieldInStaticInvalid extends  AnalysisVisitor{
                     }
                 }
             }
-            int a = 1;
         }
         return null;
     }
