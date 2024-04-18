@@ -9,6 +9,10 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
  *
@@ -52,6 +56,22 @@ public class UndeclaredVariable extends AnalysisVisitor {
                 .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
             return null;
         }
+
+        List<String> imports = table.getImports();
+        List<String> modifiedImports = new ArrayList<>();
+
+        for (String importString : imports) {
+            String[] elements = importString.substring(1, importString.length() - 1).split(",");
+            for (String element : elements) {
+                modifiedImports.add(element.trim());
+            }
+        }
+
+        for(String modifiedImport : modifiedImports) {
+            if(Objects.equals(modifiedImport,varRefName))
+                return null;
+        }
+
 
         // Create error report
         var message = String.format("Variable '%s' does not exist.", varRefName);

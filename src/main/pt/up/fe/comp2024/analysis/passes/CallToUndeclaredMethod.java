@@ -31,7 +31,12 @@ public class CallToUndeclaredMethod extends AnalysisVisitor {
         int imports_size = table.getImports().size();
         boolean found = false;
 
-        for(JmmNode node : methodCall.getParent().getParent().getParent().getChildren()){
+        JmmNode classDecl = methodCall;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getChildren()){
             if(Objects.equals(node.getKind(), "MethodDecl") && Objects.equals(node.get("name"), methodName)){
                 found = true;
                 break;

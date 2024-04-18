@@ -17,7 +17,20 @@ public enum Kind {
     RETURN_STMT,
     BINARY_EXPR,
     INTEGER_LITERAL,
+    BINARY_OP,
+
+    BOOLEAN_LITERAL,
+    FUNC_CALL,
+    STRING_LITERAL,
+
+
+    VOID,
+    INTEGER,
+    BOOLEAN,
+    IMPORT_DECL,
     VAR_REF_EXPR;
+
+
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
