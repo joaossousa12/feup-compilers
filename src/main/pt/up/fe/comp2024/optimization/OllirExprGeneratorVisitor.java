@@ -1,5 +1,7 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.ClassType;
+import org.specs.comp.ollir.ElementType;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -38,18 +40,57 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     private OllirExprResult visitFCall(JmmNode node,Void unused){
-        StringBuilder code = new StringBuilder("invokestatic");
-        code.append("(");
-        code.append((node.getChild(0).get("name")));
-        code.append(", ");
-        code.append("\""+node.get("name")+"\", ");
-        code.append(visit(node.getChild(1)).getCode());
-        code.append(")");
-        code.append(".V");
-        code.append(END_STMT);
-        String stringCode = code.toString();
-        return new OllirExprResult(stringCode);
+        // static a esquerda do ponto é o nome de uma class se n for estatico é virtual
+        // varrefexpr
+        if(Objects.equals(node.getChild(0).getKind(), "VarRefExpr")) {
+            StringBuilder code = new StringBuilder("invokestatic");
+            code.append("(");
+            code.append((node.getChild(0).get("name")));
+            code.append(", ");
+            code.append("\"" + node.get("name") + "\", ");
+            code.append(visit(node.getChild(1)).getCode());
+            code.append(")");
+            code.append(".V");
+            code.append(END_STMT);
+            String stringCode = code.toString();
+            return new OllirExprResult(stringCode);
+        }
+        else{
+            StringBuilder code = new StringBuilder("invokevirtual");
+            code.append("(");
+            if(Objects.equals(node.getChild(0).getKind(), "Object")) {
+                code.append(node.getChild(0).get("value"));
+                code.append(".");
+                if(Objects.equals(node.getChild(0).get("value"), "this")){
+                    code.append(table.getClassName());
+                }
+            }
+            code.append(", ");
+            code.append("\"" + node.get("name") + "\"");
+            for(int i = 1; i < node.getNumChildren(); i++){
+                code.append(", ");
+                code.append(node.getChild(i).get("name"));
+                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(i))));
+            }
+            code.append(")");
 
+            JmmNode classDecl = node;
+            while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+                classDecl = classDecl.getParent();
+            }
+            JmmNode retNode = null;
+            for(JmmNode method : classDecl.getChildren()) {
+                if(Objects.equals(method.get("name"), node.get("name"))){
+                    retNode = method.getChild(0).getChild(0);
+                }
+            }
+            code.append(OptUtils.toOllirType(retNode));
+
+
+            code.append(END_STMT);
+            String stringCode = code.toString();
+            return new OllirExprResult(stringCode);
+        }
     }
     private OllirExprResult visitBool(JmmNode node, Void unused){
         var bool = new Type(TypeUtils.getBoolTypeName(), false);
@@ -125,6 +166,26 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         return OllirExprResult.EMPTY;
+    }
+
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getDescendants()) {
+            if(Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                if(Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                    ret = node.getChild(0);
+                    break;
+                }
+            }
+        }
+
+
+        return ret;
     }
 
 }

@@ -54,7 +54,7 @@ public class IncompatibleArguments extends AnalysisVisitor {
                 }
 
                 else if(numParams1 == numParams2){
-                    if(paramTypes == paramTypes1)
+                    if(paramTypes.equals(paramTypes1))
                         return null;
                 }
 

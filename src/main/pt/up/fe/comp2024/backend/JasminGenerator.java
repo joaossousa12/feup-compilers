@@ -326,6 +326,10 @@ public class JasminGenerator {
             code.append(invocationType).append(" ").append(name).append("/").append(methodName).append("()V").append(NL);
 
         }
+        else if(Objects.equals(invocationType, "invokevirtual")){
+            //TODO continue code below
+            code.append(invocationType).append(" ").append(name).append("/");
+        }
         else
             code.append(invocationType).append(" ").append(name).append("/<init>()V").append(NL);
 
