@@ -84,10 +84,24 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             }
         }
         //StringBuilder aux = new StringBuilder();
-
+        StringBuilder aux = new StringBuilder();
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 
+        if(Objects.equals(node.getChild(0).getKind(), "NewClass")){
+            aux = code;
+            code = new StringBuilder();
+            String resOllirType = OptUtils.toOllirType(node.getChild(0));
+            String type = OptUtils.getTemp() + resOllirType;
+            rhs = new OllirExprResult(type, type + " :=" + resOllirType + " new(" + table.getClassName() + ")" + resOllirType + ";\n");
+        }
+
         code.append(rhs.getComputation());
+
+        if(Objects.equals(node.getChild(0).getKind(), "NewClass"))
+            code.append("invokespecial(").append(rhs.getCode()).append(", \"\").V;\n");
+
+        if(Objects.equals(node.getChild(0).getKind(), "NewClass"))
+            code.append(aux);
 
         Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
         String typeString = OptUtils.toOllirType(thisType);
