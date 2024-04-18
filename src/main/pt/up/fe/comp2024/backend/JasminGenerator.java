@@ -260,36 +260,20 @@ public class JasminGenerator {
 
 
     private String generateCall(CallInstruction call) {
-        var code = new StringBuilder();
+            StringBuilder code = new StringBuilder();
 
-        // generate code for loading arguments
-        for (var arg : call.getArguments()) {
-            code.append(generators.apply(arg));
-        }
+            String type = call.getInvocationType().toString();
+            String operands = call.getOperands().toString().split(" ")[1].split("\\.")[0];
+            String name = Character.toUpperCase(operands.charAt(0)) + operands.substring(1);
 
-        // generate code for calling the method
-        var methodName = call.getMethodNameTry().toString();
+            if (type.equals("NEW")) {
+                code.append("new ").append(ollirResult.getOllirClass().getClassName()).append(NL).append("dup").append(NL);
+            } else {
+                code.append(type).append(" ").append(name).append("/<init>()V").append(NL);
+            }
 
-        // get return type
-        var returnType = call.getReturnType();
+            return code.toString();
 
-        var className = call.getCaller().getType().toString();
-        // get class name
-        /*var className = call.getCaller().getType().getTypeOfElement() == ElementType.OBJECTREF ?
-                ((ClassType) call.getCaller().getType()).getName() :
-                call.getCaller().getType().toString();
-        */
-        // get invocation type
-
-        code.append(dealWithInvokes(call)).append(ollirResult.getOllirClass().getClassName()).append("/").append(methodName).append("(");
-        // get arguments
-        for (var arg : call.getArguments()) {
-            code.append(getJasminType(arg.getType()));
-        }
-
-        code.append(")").append(getJasminType(returnType)).append(NL);
-
-        return code.toString();
     }
 
 
