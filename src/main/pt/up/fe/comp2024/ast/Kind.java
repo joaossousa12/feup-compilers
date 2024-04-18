@@ -23,6 +23,8 @@ public enum Kind {
     FUNC_CALL,
     STRING_LITERAL,
 
+    NEW_CLASS,
+
 
     VOID,
     INTEGER,

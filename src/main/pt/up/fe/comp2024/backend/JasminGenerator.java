@@ -78,7 +78,7 @@ public class JasminGenerator {
         code.append(".class public ").append(className).append(NL);
 
         // superclass
-        String superClass = classUnit.getSuperClass() == null ? "java/lang/Object" : classUnit.getSuperClass();
+        String superClass = (classUnit.getSuperClass() == null || Objects.equals(classUnit.getSuperClass(), "Object")) ? "java/lang/Object" : classUnit.getSuperClass();
         code.append(".super ").append(superClass).append(NL);
 
         // fields
@@ -314,6 +314,22 @@ public class JasminGenerator {
             code.append("new ").append(ollirResult.getOllirClass().getClassName()).append(NL).append("dup").append(NL);
 
         // invokeSpecial
+        else if(Objects.equals(invocationType, "invokestatic")){
+
+            String methodName = callInstruction.getMethodName().toString();
+            int startIndex = methodName.indexOf('"') + 1;
+            int endIndex = methodName.indexOf('"', startIndex);
+            methodName = methodName.substring(startIndex, endIndex);
+            String firstLetterLowercase = name.substring(0, 1).toLowerCase();
+            name = firstLetterLowercase + name.substring(1);
+
+            code.append(invocationType).append(" ").append(name).append("/").append(methodName).append("()V").append(NL);
+
+        }
+        else if(Objects.equals(invocationType, "invokevirtual")){
+            //TODO continue code below
+            code.append(invocationType).append(" ").append(name).append("/");
+        }
         else
             code.append(invocationType).append(" ").append(name).append("/<init>()V").append(NL);
 
