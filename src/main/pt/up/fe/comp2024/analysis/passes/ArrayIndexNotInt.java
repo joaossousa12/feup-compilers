@@ -30,7 +30,10 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
 
         JmmNode index = arrayIndex.getChild(1);
 
-        if(!Objects.equals(index.getKind(), "IntegerLiteral")){
+        if(Objects.equals(index.getKind(), "VarRefExpr"))
+            index = getActualTypeVarRef(index);
+
+        if(!Objects.equals(index.getKind(), "IntegerLiteral") && !Objects.equals(index.getKind(), "IntegerType")){
             var message = "Array index is not integer type.";
             addReport(Report.newError(
                     Stage.SEMANTIC,
@@ -40,7 +43,37 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
                     null)
             );
         }
+        else if(Objects.equals(index.getKind(), "BinaryOp")){
+            if(!(Objects.equals(index.getChild(0).get("op"), "+") || Objects.equals(index.getChild(0).get("op"), "-") || Objects.equals(index.getChild(0).get("op"), "*") || Objects.equals(index.getChild(0).get("op"), "/")))
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(arrayIndex),
+                        NodeUtils.getColumn(arrayIndex),
+                        "Array index is not integer type.",
+                        null)
+                );
+        }
 
         return null;
+    }
+
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getDescendants()) {
+            if(Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                if(Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                    ret = node.getChild(0);
+                    break;
+                }
+            }
+        }
+
+
+        return ret;
     }
 }
