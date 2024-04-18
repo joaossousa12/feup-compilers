@@ -44,11 +44,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(PARAM, this::visitParam);
         addVisit("returnStmt", this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
-        addVisit(INTEGER, this::visitInt);
-        addVisit(BOOLEAN, this::visitBool);
-        addVisit("String", this::visitString);
-        addVisit("Void",this::visitVoid);
-        addVisit("import",this::visitImport);
         addVisit("ExprStmt",this::visitExprStmt);
 
         setDefaultVisit(this::defaultVisit);
@@ -74,59 +69,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     }
 
-        private String visitVoid(JmmNode node, Void unused){
-        StringBuilder code = new StringBuilder();
 
-        var voidType = new Type(TypeUtils.getVoidTypeName(),false);
-        code.append(OptUtils.toOllirType(voidType));
-        return code.toString();
-
-
-    }
-    private String visitInt(JmmNode node, Void unused){
-        StringBuilder code = new StringBuilder();
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
-        code.append(OptUtils.toOllirType(intType));
-
-
-        return code.toString();
-    }
-    private String visitBool(JmmNode node, Void unused){
-        StringBuilder code = new StringBuilder();
-        var boolType = new Type(TypeUtils.getBoolTypeName(), false);
-        code.append(OptUtils.toOllirType(boolType));
-
-        return code.toString();
-
-    }
-
-    private String visitString(JmmNode node, Void unused){
-        StringBuilder code = new StringBuilder();
-        var stringType = new Type(TypeUtils.getStringTypeName(), false);
-        code.append(OptUtils.toOllirType(stringType));
-
-        return code.toString();
-
-    }
-    private String visitImport(JmmNode node, Void unused){
-        StringBuilder code = new StringBuilder();
-        var importType = new Type(TypeUtils.getImportTypeName(),false);
-        code.append(OptUtils.toOllirType(importType));
-
-        code.append(node.get("value")).append(END_STMT);
-
-        int size = code.length();
-
-        for (int i = 0; i < size; i++) {
-            char currentChar = code.charAt(i);
-            if (currentChar != '[' && currentChar != ']') {
-                code.append(currentChar);
-            }
-        }
-
-        return code.toString();
-
-    }
 
 
     private String visitAssignStmt(JmmNode node, Void unused) {
