@@ -46,6 +46,24 @@ public class MissDuplicated extends AnalysisVisitor {
                     null)
             );
 
+        List<String[]> importClasses = new ArrayList<>();
+        for(var import1 : modifiedImports){
+            String[] h = new String[1];
+            h[0] = import1[import1.length - 1];
+            importClasses.add(h);
+        }
+
+        if(hasRepeatedStringArray(importClasses))
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(classDecl),
+                    NodeUtils.getColumn(classDecl),
+                    "repeated import classes",
+                    null)
+            );
+
+
+
         // repeated fields
         List<Symbol> fields = table.getFields();
         for(int i = 0; i < fields.size(); i++){
