@@ -48,6 +48,17 @@ public class FieldInStaticInvalid extends  AnalysisVisitor{
                                 null)
                         );
                 }
+                else if(Objects.equals(node.getKind(), "Object")){
+                    if(Objects.equals(node.get("value"), "this")){
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(methodDecl),
+                                NodeUtils.getColumn(methodDecl),
+                                "this used in main method",
+                                null)
+                        );
+                    }
+                }
                 else if(Objects.equals(node.getKind(), "AssignStmt")){
                     if(fieldNames.contains(node.get("var")))
                         addReport(Report.newError(
@@ -75,25 +86,5 @@ public class FieldInStaticInvalid extends  AnalysisVisitor{
             }
         }
         return null;
-    }
-
-    private JmmNode getActualTypeVarRef(JmmNode varRefExpr){
-        JmmNode ret = varRefExpr;
-        JmmNode classDecl = varRefExpr;
-        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
-            classDecl = classDecl.getParent();
-        }
-
-        for(JmmNode node : classDecl.getDescendants()) {
-            if(Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
-                if(Objects.equals(node.get("name"), varRefExpr.get("name"))) {
-                    ret = node.getChild(0);
-                    break;
-                }
-            }
-        }
-
-
-        return ret;
     }
 }
