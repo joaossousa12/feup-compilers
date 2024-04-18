@@ -35,7 +35,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit("BinaryOp", this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
-        addVisit("NewClass", this::visitNewClass);
+        //addVisit("NewClass", this::visitNewClass);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -134,10 +134,25 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
+        Type resType = new Type("boolean", false);
+        if(Objects.equals(node.get("op"), "+") || Objects.equals(node.get("op"), "-") || Objects.equals(node.get("op"), "*") || Objects.equals(node.get("op"), "/")){
+            resType = new Type("int", false);
+        }
 
         var lhs = visit(node.getJmmChild(0));
         var rhs = visit(node.getJmmChild(1));
 
+        if(Objects.equals(node.getChild(1).getKind(), "FunctionCall")){
+            String resOllirType = OptUtils.toOllirType(resType);
+            String code = OptUtils.getTemp() + resOllirType;
+            rhs = new OllirExprResult(code, code + " :=" + resOllirType + " " + rhs.getCode() + ";\n");
+        }
+
+        if(Objects.equals(node.getChild(0).getKind(), "FunctionCall")){
+            String resOllirType = OptUtils.toOllirType(resType);
+            String code = OptUtils.getTemp() + resOllirType;
+            lhs = new OllirExprResult(code, code + " :=" + resOllirType + " " + lhs.getCode() + ";\n");
+        }
         StringBuilder computation = new StringBuilder();
 
         // code to compute the children
@@ -145,10 +160,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(rhs.getComputation());
 
         // code to compute self
-        Type resType = new Type("boolean", false);
-        if(Objects.equals(node.get("op"), "+") || Objects.equals(node.get("op"), "-") || Objects.equals(node.get("op"), "*") || Objects.equals(node.get("op"), "/")){
-            resType = new Type("int", false);
-        }
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
 
@@ -156,11 +167,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 .append(ASSIGN).append(resOllirType).append(SPACE)
                 .append(lhs.getCode()).append(SPACE);
 
-        Type type = new Type("boolean", false);
-        if(Objects.equals(node.get("op"), "+") || Objects.equals(node.get("op"), "-") || Objects.equals(node.get("op"), "*") || Objects.equals(node.get("op"), "/")){
-            type = new Type("int", false);
-        }
-        computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
+        computation.append(node.get("op")).append(OptUtils.toOllirType(resType)).append(SPACE)
                 .append(rhs.getCode()).append(END_STMT);
 
         return new OllirExprResult(code, computation);
@@ -213,18 +220,18 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         return ret;
     }
-    private OllirExprResult visitNewClass(JmmNode node, Void unused){
-        StringBuilder computation = new StringBuilder();
-        String nodeType = OptUtils.toOllirType(node);
-        String tempVar = OptUtils.getTemp();
-
-        computation.append(String.format("%s%s :=%s new(%s)%s;\n", tempVar, nodeType, nodeType, node.get("name"), nodeType));
-        computation.append(String.format("invokespecial(%s%s, \"<init>\").V;\n", tempVar, nodeType));
-
-        String code = String.format("%s%s", tempVar, nodeType);
-
-        return new OllirExprResult(code, computation.toString());
-    }
+//    private OllirExprResult visitNewClass(JmmNode node, Void unused){
+//        StringBuilder computation = new StringBuilder();
+//        String nodeType = OptUtils.toOllirType(node);
+//        String tempVar = OptUtils.getTemp();
+//
+//        computation.append(String.format("%s%s :=%s new(%s)%s;\n", tempVar, nodeType, nodeType, node.get("name"), nodeType));
+//        computation.append(String.format("invokespecial(%s%s, \"<init>\").V;\n", tempVar, nodeType));
+//
+//        String code = String.format("%s%s", tempVar, nodeType);
+//
+//        return new OllirExprResult(code, computation.toString());
+//    }
 
 
 }

@@ -140,6 +140,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 }
             }
         }
+        //StringBuilder aux = new StringBuilder();
 
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 

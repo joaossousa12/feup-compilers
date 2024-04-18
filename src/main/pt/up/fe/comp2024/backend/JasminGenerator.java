@@ -327,8 +327,21 @@ public class JasminGenerator {
 
         }
         else if(Objects.equals(invocationType, "invokevirtual")){
+
+            String methodName = callInstruction.getMethodName().toString();
+            int startIndex = methodName.indexOf('"') + 1;
+            int endIndex = methodName.indexOf('"', startIndex);
+            methodName = methodName.substring(startIndex, endIndex);
+            String firstLetterLowercase = name.substring(0, 1).toLowerCase();
+            String returnType=null;
+            for(Method method :  ollirResult.getOllirClass().getMethods()){
+                if(Objects.equals(method.getMethodName(), methodName)){
+                    returnType = getJasminType(method.getReturnType());
+                }
+            }
+            int a = 1;
             //TODO continue code below
-            code.append(invocationType).append(" ").append(name).append("/");
+            code.append(invocationType).append(" ").append(ollirResult.getOllirClass().getClassName()).append("/").append(methodName).append("()").append(returnType).append(NL);
         }
         else
             code.append(invocationType).append(" ").append(name).append("/<init>()V").append(NL);
