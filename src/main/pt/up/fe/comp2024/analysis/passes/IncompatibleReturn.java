@@ -64,13 +64,17 @@ public class IncompatibleReturn extends AnalysisVisitor {
         }
 
         if(Objects.equals(child.getKind(), "VarRefExpr")){
-            JmmNode node = getActualTypeVarRef(child);
+            JmmNode node = getActualTypeVarRef(child, currentMethod);
             if(Objects.equals(methodType, node.getKind()))
                 return null;
         }
 
         if(Objects.equals(child.getKind(), "ArrayAccess")){
-            if(Objects.equals(methodType, getActualTypeVarRef(child.getChild(0)).getKind())){
+            JmmNode node1 = getActualTypeVarRef(child.getChild(0), currentMethod);
+            while(!Objects.equals("MethodDecl", node1.getKind())){
+                node1 = node1.getParent();
+            }
+            if(Objects.equals(methodType, node1.getChild(0).getChild(0).getKind())){
                 return null;
             }
         }
@@ -86,18 +90,22 @@ public class IncompatibleReturn extends AnalysisVisitor {
         return null;
     }
 
-    private JmmNode getActualTypeVarRef(JmmNode varRefExpr){
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr, String methodName){
         JmmNode ret = varRefExpr;
         JmmNode classDecl = varRefExpr;
         while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
             classDecl = classDecl.getParent();
         }
 
-        for(JmmNode node : classDecl.getDescendants()) {
-            if(Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
-                if(Objects.equals(node.get("name"), varRefExpr.get("name"))) {
-                    ret = node.getChild(0);
-                    break;
+        for(JmmNode node1 : classDecl.getChildren()) {
+            if(node1.get("name").equals(methodName)) {
+                for (JmmNode node : node1.getDescendants()) {
+                    if (Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                        if (Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                            ret = node.getChild(0);
+                            break;
+                        }
+                    }
                 }
             }
         }
