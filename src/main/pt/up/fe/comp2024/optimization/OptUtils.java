@@ -33,6 +33,9 @@ public class OptUtils {
     }
 
     public static String toOllirType(JmmNode typeNode) {
+        if(Objects.equals(typeNode.getKind(), "VarRefExpr"))
+            typeNode = getActualTypeVarRef(typeNode);
+
         String typeName = typeNode.get("name");
 
         String isArray = Objects.equals(typeNode.getKind(), "Array") ? ".array" : "";
@@ -65,6 +68,26 @@ public class OptUtils {
         };
 
         return type;
+    }
+
+    public static JmmNode getActualTypeVarRef(JmmNode varRefExpr){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getDescendants()) {
+            if(Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                if(Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                    ret = node.getChild(0);
+                    break;
+                }
+            }
+        }
+
+
+        return ret;
     }
 
 
