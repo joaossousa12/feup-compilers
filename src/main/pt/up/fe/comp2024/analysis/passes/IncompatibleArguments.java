@@ -48,6 +48,12 @@ public class IncompatibleArguments extends AnalysisVisitor {
                     paramTypes1.add("IntegerType");
                 else if(Objects.equals(methodCall.getChild(i).getKind(), "BooleanLiteral"))
                     paramTypes1.add("BooleanType");
+                else if(Objects.equals(methodCall.getChild(i).getKind(), "BinaryOp")){
+                    if(Objects.equals(methodCall.getChild(i).get("op"), "+") || Objects.equals(methodCall.getChild(i).get("op"), "-") || Objects.equals(methodCall.getChild(i).get("op"), "*") || Objects.equals(methodCall.getChild(i).get("op"), "/"))
+                        paramTypes1.add("IntegerType");
+                    else
+                        paramTypes1.add("BooleanType");
+                }
                 else
                     paramTypes1.add(methodCall.getChild(i).getKind());
             }

@@ -160,6 +160,6 @@ public class ArrayInWhileCondition extends AnalysisVisitor{
 
             return  checkIfInteger(retType);
         }
-        return Objects.equals(node.getKind(), "IntegerLiteral") || Objects.equals(node.getKind(), "IntegerType") || Objects.equals(node.getKind(), "ArrayAccess");
+        return Objects.equals(node.getKind(), "Length") || Objects.equals(node.getKind(), "IntegerLiteral") || Objects.equals(node.getKind(), "IntegerType") || Objects.equals(node.getKind(), "ArrayAccess");
     }
 }
