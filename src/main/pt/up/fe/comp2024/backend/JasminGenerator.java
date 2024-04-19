@@ -197,7 +197,7 @@ public class JasminGenerator {
             default -> "Type" + elementType + "not implemented";
         };
     }
-    
+
 
     private String generateMethod(Method method) {
 
@@ -296,17 +296,17 @@ public class JasminGenerator {
     private String generatePutFieldInstruction(PutFieldInstruction putFieldInstruction) {
         var code = new StringBuilder();
 
-        Element first = putFieldInstruction.getOperands().get(0);
-        Element second = putFieldInstruction.getOperands().get(1);
-        Element third = putFieldInstruction.getOperands().get(2);
+        Element op1 = putFieldInstruction.getOperands().get(0);
+        Element op2 = putFieldInstruction.getOperands().get(1);
+        Element op3 = putFieldInstruction.getOperands().get(2);
 
-        code.append(generators.apply(first));
-        code.append(generators.apply(third));
+        code.append(generators.apply(op1));
+        code.append(generators.apply(op3));
 
         code.append("\tputfield ");
 
         code.append(ollirResult.getOllirClass().getClassName()).append("/");
-        code.append(((Operand) second).getName()).append(" ").append(getJasminType(second.getType())).append(NL);
+        code.append(((Operand) op2).getName()).append(" ").append(getJasminType(op2.getType())).append(NL);
 
         return code.toString();
     }
@@ -314,14 +314,14 @@ public class JasminGenerator {
     private String generateGetFieldInstruction(GetFieldInstruction getFieldInstruction) {
         var code = new StringBuilder();
 
-        Element first = getFieldInstruction.getOperands().get(0);
-        Element second = getFieldInstruction.getOperands().get(1);
+        Element op1 = getFieldInstruction.getOperands().get(0);
+        Element aux = getFieldInstruction.getOperands().get(1);
 
-        code.append(generators.apply(first));
+        code.append(generators.apply(op1));
         code.append("\tgetfield ");
 
         code.append(ollirResult.getOllirClass().getClassName()).append("/");
-        code.append(((Operand) second).getName()).append(" ").append(getJasminType(second.getType())).append(NL);
+        code.append(((Operand) aux).getName()).append(" ").append(getJasminType(aux.getType())).append(NL);
 
         return code.toString();
     }
@@ -340,21 +340,21 @@ public class JasminGenerator {
             }
 
             code.append("invokevirtual ");
-            var first = (Operand) callInstruction.getOperands().get(0);
-            var firstName = ((ClassType) first.getType()).getName();
+            var firstOp = (Operand) callInstruction.getOperands().get(0);
+            var name = ((ClassType) firstOp.getType()).getName();
 
 
-            if(firstName.equals("this")){
+            if(name.equals("this")){
                 code.append(className);
             }
             else {
                 for (var importClass : ollirResult.getOllirClass().getImports()) {
                     if (importClass.endsWith(className)) {
-                        firstName.replaceAll("\\.", "/");
+                        name.replaceAll("\\.", "/");
                     }
                 }
             }
-            code.append(firstName).append("/");
+            code.append(name).append("/");
 
             var methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             code.append(methodName);
@@ -413,20 +413,20 @@ public class JasminGenerator {
             }
 
             code.append("invokestatic ");
-            var first = (Operand) callInstruction.getOperands().get(0);
-            var firstName = first.getName();
+            var firstOp = (Operand) callInstruction.getOperands().get(0);
+            var name = firstOp.getName();
 
 
-            if (firstName.equals("this")){
+            if (name.equals("this")){
                 code.append(className);
             }
             else {
                 for (var importClass : ollirResult.getOllirClass().getImports()) {
-                    if (importClass.endsWith(firstName)) {
-                        firstName.replaceAll("\\.", "/");
+                    if (importClass.endsWith(name)) {
+                        name.replaceAll("\\.", "/");
                     }
                 }
-                code.append(firstName);
+                code.append(name);
             }
 
             code.append("/");
