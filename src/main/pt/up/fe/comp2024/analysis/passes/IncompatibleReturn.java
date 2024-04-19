@@ -68,6 +68,9 @@ public class IncompatibleReturn extends AnalysisVisitor {
 
         if(Objects.equals(child.getKind(), "VarRefExpr")){
             JmmNode node = getActualTypeVarRef(child, currentMethod);
+            if(Objects.equals(node.getKind(), "VarRefExpr")){
+                node = getActualTypeVarRef(node);
+            }
             if(Objects.equals(methodType, node.getKind()))
                 return null;
         }
@@ -109,6 +112,26 @@ public class IncompatibleReturn extends AnalysisVisitor {
                             break;
                         }
                     }
+                }
+            }
+        }
+
+
+        return ret;
+    }
+
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getDescendants()) {
+            if(Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                if(Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                    ret = node.getChild(0);
+                    break;
                 }
             }
         }
