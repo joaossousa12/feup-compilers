@@ -30,6 +30,19 @@ public class ArrayInitWrong extends AnalysisVisitor{
         if(Objects.equals(arrayInit.getParent().getKind(), "FunctionCall") || Objects.equals(arrayInit.getParent().getKind(), "Length"))
             return null;
 
+        if(Objects.equals(arrayInit.getParent().getKind(), "ReturnStmt")){
+            if(!Objects.equals(arrayInit.getParent().getParent().getChild(0).getChild(0).getKind(), "Array")) {
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(arrayInit),
+                        NodeUtils.getColumn(arrayInit),
+                        "Returning an array on a non array returning method!",
+                        null)
+                );
+            }
+            return null;
+        }
+
         String variable = arrayInit.getParent().get("var");
         String type = null;
         boolean array = false;
