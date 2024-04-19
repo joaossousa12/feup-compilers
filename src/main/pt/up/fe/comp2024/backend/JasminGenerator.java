@@ -108,11 +108,11 @@ public class JasminGenerator {
         code.append(TAB).append(" ").append("invokespecial ");
         if (ollirResult.getOllirClass().getSuperClass() != null && !Objects.equals(classUnit.getSuperClass(), "Object")) {
             var superName = ollirResult.getOllirClass().getSuperClass();
-            if (superName.equals("this")) code.append(superName);
+            if (!superName.isEmpty()) code.append(superName);
 
             else {
                 for (var imports : ollirResult.getOllirClass().getImports()) {
-                    if (imports.endsWith(className)) {
+                        if (imports.endsWith(className)) {
                         var test = imports.replace(".", "/");
                         code.append(test);
                     }
