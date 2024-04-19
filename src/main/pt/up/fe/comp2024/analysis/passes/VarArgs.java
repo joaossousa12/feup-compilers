@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
+import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
@@ -34,6 +35,32 @@ public class VarArgs extends AnalysisVisitor{
         JmmNode classDecl = methodCall;
         while(!Objects.equals(classDecl.getKind(), "ClassDecl")){
             classDecl = classDecl.getParent();
+        }
+
+        // check if varargs is defined as a field
+        for(JmmNode varDecl : classDecl.getChildren(Kind.VAR_DECL)){
+            if(Objects.equals(varDecl.getChild(0).getKind(), "EllipsisType"))
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(varDecl.getChild(0)),
+                        NodeUtils.getColumn(varDecl.getChild(0)),
+                        "Varargs defined as a field",
+                        null)
+                );
+        }
+
+        // check if varargs is defined as a local
+        for(JmmNode methodDecl : classDecl.getChildren(METHOD_DECL)){
+            for(JmmNode varDecl : methodDecl.getChildren(Kind.VAR_DECL)){
+                if(Objects.equals(varDecl.getChild(0).getKind(), "EllipsisType"))
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(varDecl.getChild(0)),
+                            NodeUtils.getColumn(varDecl.getChild(0)),
+                            "Varargs defined as a field",
+                            null)
+                    );
+            }
         }
 
         boolean ellipsis = false;
