@@ -27,6 +27,18 @@ public class AssignIntToBool extends AnalysisVisitor{
 
     private Void visitAssign(JmmNode assign, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
+        if(Objects.equals(assign.getChild(0).getKind(), "ArrayAccess")){
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(assign.getChild(0)),
+                    NodeUtils.getColumn(assign.getChild(0)),
+                    "Assign to array access",
+                    null)
+            );
+
+            return null;
+        }
+
 
         String variable = assign.get("var");
         String type = null;
