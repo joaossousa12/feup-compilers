@@ -40,17 +40,19 @@ public class MemberAccessOnInt extends  AnalysisVisitor{
         }
 
         for(JmmNode methodDecl : classDecl.getChildren()) {
-            for(JmmNode node: methodDecl.getChildren()) {
-                if(Objects.equals(node.getKind(), "VarDecl") && Objects.equals(node.get("name"), variable)){
-                    if(Objects.equals(node.getChild(0).getKind(), "IntegerType") && node.getChild(0).getNumChildren() < 1){
-                        var message = "Trying to do a member access on an int.";
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(methodAccess),
-                                NodeUtils.getColumn(methodAccess),
-                                message,
-                                null)
-                        );
+            if(Objects.equals(methodDecl.get("name"), currentMethod)) {
+                for (JmmNode node : methodDecl.getChildren()) {
+                    if (Objects.equals(node.getKind(), "VarDecl") && Objects.equals(node.get("name"), variable)) {
+                        if (Objects.equals(node.getChild(0).getKind(), "IntegerType") && node.getChild(0).getNumChildren() < 1) {
+                            var message = "Trying to do a member access on an int.";
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(methodAccess),
+                                    NodeUtils.getColumn(methodAccess),
+                                    message,
+                                    null)
+                            );
+                        }
                     }
                 }
             }
