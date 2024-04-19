@@ -111,7 +111,7 @@ public class ArrayInitWrong extends AnalysisVisitor{
             newArraySize = getActualTypeFunctionCall(newArraySize);
         }
 
-        if(!(Objects.equals(newArraySize.getKind(), "IntegerLiteral") || Objects.equals(newArraySize.getKind(), "IntegerType")) ){
+        if(!(Objects.equals(newArraySize.getKind(), "Length") ||Objects.equals(newArraySize.getKind(), "IntegerLiteral") || Objects.equals(newArraySize.getKind(), "IntegerType")) ){
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(newArray),
