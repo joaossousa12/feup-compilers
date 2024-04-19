@@ -120,7 +120,7 @@ expr
     | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
     | expr LSQPAREN expr RSQPAREN #ArrayAccess //
     | expr MEMBERCALL LENGTH #Length //
-    | expr MEMBERCALL name= ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
+    | expr MEMBERCALL name= ID (LPAREN (expr (COMMA expr)*)? RPAREN)? #FunctionCall //
     | expr LPAREN expr RPAREN #MemberCall //
     | value= THIS #Object //
     | value= NOT expr #Negation //
