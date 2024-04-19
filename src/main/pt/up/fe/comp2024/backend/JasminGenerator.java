@@ -108,10 +108,24 @@ public class JasminGenerator {
         code.append(TAB).append(" ").append("invokespecial ");
         if (ollirResult.getOllirClass().getSuperClass() != null && !Objects.equals(classUnit.getSuperClass(), "Object")) {
             var superName = ollirResult.getOllirClass().getSuperClass();
-            code.append(superName);
-        } else {
-            code.append("java/lang/Object");
+            if (superName.equals("this")) code.append(superName);
+
+            else {
+                for (var imports : ollirResult.getOllirClass().getImports()) {
+                    if (imports.endsWith(className)) {
+                        var test = imports.replace(".", "/");
+                        code.append(test);
+                    }
+                }
+
+            }
         }
+            else {
+                code.append("java/lang/Object");
+
+
+            }
+
         code.append("/<init>()V").append(NL);
         code.append(finishConstruct);
 
