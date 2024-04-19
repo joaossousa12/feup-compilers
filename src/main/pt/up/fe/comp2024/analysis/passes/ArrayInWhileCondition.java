@@ -30,12 +30,8 @@ public class ArrayInWhileCondition extends AnalysisVisitor{
         JmmNode condition = whileNode.getChild(0);
         boolean array = false;
         if(Objects.equals(condition.getKind(), "VarRefExpr")){
-            String variable = condition.get("name");
-            for(JmmNode decl : condition.getParent().getParent().getChildren()){
-                if(Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(variable)){
-                    array = Objects.equals(decl.getChild(0).getKind(), "Array");
-                }
-            }
+            JmmNode node = getActualTypeVarRef(condition, currentMethod);
+            array = Objects.equals(node.getKind(), "Array");
         }
 
         if(array){
@@ -46,7 +42,44 @@ public class ArrayInWhileCondition extends AnalysisVisitor{
                     "Array as while condition",
                     null)
             );
+
+            return null;
         }
+
+        if(Objects.equals(condition.getKind(), "ArrayInit")){
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(whileNode),
+                    NodeUtils.getColumn(whileNode),
+                    "ArrayInit only on while",
+                    null)
+            );
+        }
+
         return null;
+    }
+
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr, String methodName){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node1 : classDecl.getChildren()) {
+            if(node1.get("name").equals(methodName)) {
+                for (JmmNode node : node1.getDescendants()) {
+                    if (Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                        if (Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                            ret = node.getChild(0);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return ret;
     }
 }
