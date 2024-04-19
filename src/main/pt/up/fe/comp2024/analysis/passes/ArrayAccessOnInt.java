@@ -28,11 +28,104 @@ public class ArrayAccessOnInt extends AnalysisVisitor{
     private Void visitArrayAccess(JmmNode arrayAccess, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
-        String variable = arrayAccess.getChild(0).get("name");
         JmmNode methodDecl = arrayAccess;
         while (!Objects.equals(methodDecl.getKind(), "MethodDecl")) {
             methodDecl = methodDecl.getParent();
         }
+
+        if(Objects.equals(arrayAccess.getChild(0).getKind(), "ArrayInit")){
+            String assignedTo = arrayAccess.getParent().get("var");
+            String assignedToType = null;
+            for(JmmNode varDecl : methodDecl.getChildren(Kind.VAR_DECL)){
+                if(Objects.equals(varDecl.get("name"), assignedTo)){
+                    assignedToType = varDecl.getChild(0).getKind();
+                }
+            }
+
+            if(assignedToType == null){
+                for(JmmNode varDecl: methodDecl.getParent().getChildren(Kind.VAR_DECL)){
+                    if(Objects.equals(varDecl.get("name"), assignedTo)){
+                        assignedToType = varDecl.getChild(0).getKind();
+                    }
+                }
+            }
+
+            for(JmmNode child : arrayAccess.getChild(0).getChildren()){
+                String type = child.getKind();
+                switch (assignedToType){
+                    case "IntegerType":
+                        if(!(Objects.equals(type, "IntegerType") || Objects.equals(type, "IntegerLiteral"))) {
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(methodDecl),
+                                    NodeUtils.getColumn(methodDecl),
+                                    "wrong argument ellipsis method",
+                                    null));
+
+                            return null;
+                        }
+
+                        else
+                            break;
+                    case "BooleanType":
+                        if(!(Objects.equals(type, "BooleanType") || Objects.equals(type, "BooleanLiteral"))){
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(methodDecl),
+                                    NodeUtils.getColumn(methodDecl),
+                                    "wrong argument ellipsis method",
+                                    null));
+
+                            return null;
+                        }
+
+                        else
+                            break;
+                    case "StringType":
+                        if(!(Objects.equals(type, "StringType"))){
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(methodDecl),
+                                    NodeUtils.getColumn(methodDecl),
+                                    "wrong argument ellipsis method",
+                                    null));
+
+                            return null;
+                        }
+
+                        else
+                            break;
+                    case "Array":
+                        if(!(Objects.equals(type, "Array")))
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(methodDecl),
+                                    NodeUtils.getColumn(methodDecl),
+                                    "wrong argument ellipsis method",
+                                    null));
+                        else
+                            break;
+                    case "ClassType":
+                        if(!(Objects.equals(type, "ClassType") && Objects.equals(child.get("name"), child.get("name")))){
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(methodDecl),
+                                    NodeUtils.getColumn(methodDecl),
+                                    "wrong argument ellipsis method",
+                                    null));
+
+                            return null;
+                        }
+
+                        else
+                            break;
+                    default:
+                        break;
+                }
+            }
+            return null;
+        }
+        String variable = arrayAccess.getChild(0).get("name");
 
         for(JmmNode param : methodDecl.getChildren("Param")){
             if(Objects.equals(param.get("name"), variable)){
