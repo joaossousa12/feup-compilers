@@ -86,7 +86,7 @@ public class DifferentTypeOp extends AnalysisVisitor {
         }
         // boolean operators
         else{
-            if(!(Objects.equals(left.getKind(), "BooleanLiteral") ||  Objects.equals(left.getKind(), "BooleanType")) || !(Objects.equals(right.getKind(), "BooleanLiteral") ||  Objects.equals(right.getKind(), "BooleanType"))){
+            if(!(Objects.equals(left.getKind(), "Negation") || Objects.equals(left.getKind(), "BooleanLiteral") ||  Objects.equals(left.getKind(), "BooleanType")) || !(Objects.equals(right.getKind(), "Negation") || Objects.equals(right.getKind(), "BooleanLiteral") ||  Objects.equals(right.getKind(), "BooleanType"))){
                 var message = String.format("Either '%s' or '%s' is not boolean type.", left.getKind(), right.getKind());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
@@ -142,7 +142,7 @@ public class DifferentTypeOp extends AnalysisVisitor {
 
         // arithmetic operators
         if(Objects.equals(operator, "+") || Objects.equals(operator, "-") || Objects.equals(operator, "/") || Objects.equals(operator, "*") || Objects.equals(operator, ">") || Objects.equals(operator, "<")){
-            if(!(Objects.equals(left.getKind(), "ArrayAccess") || Objects.equals(left.getKind(), "IntegerLiteral") || Objects.equals(left.getKind(), "IntegerType")) || !(Objects.equals(right.getKind(), "ArrayAccess") || Objects.equals(right.getKind(), "IntegerLiteral") || Objects.equals(right.getKind(), "IntegerType"))){
+            if(!(Objects.equals(left.getKind(), "Length") || Objects.equals(left.getKind(), "ArrayAccess") || Objects.equals(left.getKind(), "IntegerLiteral") || Objects.equals(left.getKind(), "IntegerType")) || !(Objects.equals(right.getKind(), "Length") || Objects.equals(right.getKind(), "ArrayAccess") || Objects.equals(right.getKind(), "IntegerLiteral") || Objects.equals(right.getKind(), "IntegerType"))){
                 var message = String.format("Either '%s' or '%s' is not integer type (arithmetic).", left.getKind(), right.getKind());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
@@ -155,7 +155,7 @@ public class DifferentTypeOp extends AnalysisVisitor {
         }
         // boolean operators
         else{
-            if(!(Objects.equals(left.getKind(), "BooleanLiteral") ||  Objects.equals(left.getKind(), "BooleanType")) || !(Objects.equals(right.getKind(), "BooleanLiteral") ||  Objects.equals(right.getKind(), "BooleanType"))){
+            if(!(Objects.equals(left.getKind(), "Negation") || Objects.equals(left.getKind(), "BooleanLiteral") ||  Objects.equals(left.getKind(), "BooleanType")) || !(Objects.equals(right.getKind(), "Negation") || Objects.equals(right.getKind(), "BooleanLiteral") ||  Objects.equals(right.getKind(), "BooleanType"))){
                 var message = String.format("Either '%s' or '%s' is not boolean type.", left.getKind(), right.getKind());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
