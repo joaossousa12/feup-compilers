@@ -32,6 +32,9 @@ public class DifferentTypeOp extends AnalysisVisitor {
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
         JmmNode left = binaryOp.getChild(0);
+        while(Objects.equals(left.getKind(), "BinaryOp")){
+            left = left.getChild(0);
+        }
         JmmNode right = binaryOp.getChild(1);
         String operator = binaryOp.get("op");
         //TODO pode ficar mais clean se mudarmos e usarmos os metodos no typeUtils (ver para a frente)
@@ -41,7 +44,6 @@ public class DifferentTypeOp extends AnalysisVisitor {
             if(Objects.equals(left.getKind(), "VarRefExpr"))
                 left = getActualTypeVarRef(left);
         }
-
 
         else if(Objects.equals(left.getKind(), "FunctionCall"))
             left = getActualTypeFunctionCall(left);
