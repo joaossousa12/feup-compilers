@@ -30,6 +30,9 @@ public class LengthHandle extends AnalysisVisitor{
 
         JmmNode left = node.getChild(0);
 
+        if(Objects.equals(left.getKind(), "Paren"))
+            left = left.getChild(0);
+
         if(Objects.equals(left.getKind(), "VarRefExpr")){
             left = getActualTypeVarRef(left, currentMethod);
             if(Objects.equals(left.getKind(), "VarRefExpr"))

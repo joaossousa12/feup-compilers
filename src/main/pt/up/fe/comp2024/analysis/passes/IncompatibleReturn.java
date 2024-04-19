@@ -102,6 +102,11 @@ public class IncompatibleReturn extends AnalysisVisitor {
                 return null;
         }
 
+        if(Objects.equals(child.getKind(), "ArrayInit")){
+            if(Objects.equals(methodType, "Array"))
+                return null;
+        }
+
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(returnStmt),
