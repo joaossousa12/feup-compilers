@@ -61,9 +61,21 @@ public class IncompatibleReturn extends AnalysisVisitor {
         }
 
         if(Objects.equals(child.getKind(), "FunctionCall")){
+            JmmNode node = getActualTypeFunctionCall(child);
             if(Objects.equals(methodType, getActualTypeFunctionCall(child).getKind())){
                 return null;
             }
+
+            if(Objects.equals(node.getKind(), "FunctionCall")){ // imported method
+                if(node.getNumChildren() > 0){
+                    if(Objects.equals(node.getChild(0).getKind(), "VarRefExpr")){
+                        JmmNode node2 = getActualTypeVarRef(node.getChild(0));
+                        if(Objects.equals("VarRefExpr", getActualTypeVarRef(node2).getKind()))
+                            return null;
+                    }
+                }
+            }
+
         }
 
         if(Objects.equals(child.getKind(), "VarRefExpr")){
