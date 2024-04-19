@@ -36,14 +36,21 @@ public class DifferentTypeOp extends AnalysisVisitor {
         String operator = binaryOp.get("op");
         //TODO pode ficar mais clean se mudarmos e usarmos os metodos no typeUtils (ver para a frente)
 
-        if(Objects.equals(left.getKind(), "VarRefExpr"))
-            left = getActualTypeVarRef(left);
+        if(Objects.equals(left.getKind(), "VarRefExpr")){
+            left = getActualTypeVarRef(left, currentMethod);
+            if(Objects.equals(left.getKind(), "VarRefExpr"))
+                left = getActualTypeVarRef(left);
+        }
+
 
         else if(Objects.equals(left.getKind(), "FunctionCall"))
             left = getActualTypeFunctionCall(left);
 
-        if(Objects.equals(right.getKind(), "VarRefExpr"))
-            right = getActualTypeVarRef(right);
+        if(Objects.equals(right.getKind(), "VarRefExpr")){
+            right = getActualTypeVarRef(right, currentMethod);
+            if(Objects.equals(right.getKind(), "VarRefExpr"))
+                right = getActualTypeVarRef(right);
+        }
 
         else if(Objects.equals(right.getKind(), "FunctionCall")){
             right = getActualTypeFunctionCall(right);
@@ -65,7 +72,7 @@ public class DifferentTypeOp extends AnalysisVisitor {
         }
         // boolean operators
         else{
-            if(!Objects.equals(left.getKind(), "BooleanLiteral") || !Objects.equals(right.getKind(), "BooleanLiteral")){
+            if(!(Objects.equals(left.getKind(), "BooleanLiteral") ||  Objects.equals(left.getKind(), "BooleanType")) || !(Objects.equals(right.getKind(), "BooleanLiteral") ||  Objects.equals(right.getKind(), "BooleanType"))){
                 var message = String.format("Either '%s' or '%s' is not boolean type.", left.getKind(), right.getKind());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
@@ -78,6 +85,30 @@ public class DifferentTypeOp extends AnalysisVisitor {
         }
 
         return null;
+    }
+
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr, String methodName){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node1 : classDecl.getChildren()) {
+            if(node1.get("name").equals(methodName)) {
+                for (JmmNode node : node1.getDescendants()) {
+                    if (Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                        if (Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                            ret = node.getChild(0);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return ret;
     }
 
     private JmmNode getActualTypeVarRef(JmmNode varRefExpr){
@@ -108,8 +139,8 @@ public class DifferentTypeOp extends AnalysisVisitor {
             classDecl = classDecl.getParent();
         }
 
-        for(JmmNode node : classDecl.getDescendants()) {
-            if(Objects.equals(node.getKind(), "MethodDecl") && Objects.equals(node.get("name"), methodName)) {
+        for(JmmNode node : classDecl.getChildren(Kind.METHOD_DECL)) {
+            if(Objects.equals(node.get("name"), methodName)) {
                 ret = node.getChild(0).getChild(0);
                 break;
             }
