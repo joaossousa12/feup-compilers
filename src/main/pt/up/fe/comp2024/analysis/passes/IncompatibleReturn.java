@@ -28,6 +28,9 @@ public class IncompatibleReturn extends AnalysisVisitor {
         JmmNode child = returnStmt.getChild(0);
         String methodType = returnStmt.getParent().getChild(0).getChild(0).getKind();
 
+        if(Objects.equals(child.getKind(), "Length") && (Objects.equals(child.getChild(0).getKind(), "ArrayInit") || (Objects.equals(child.getChild(0).getKind(), "VarRefExpr") && Objects.equals(getActualTypeVarRef(child.getChild(0),currentMethod).getKind(), "Array"))))
+            return null;
+
         JmmNode classDecl = returnStmt;
         while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
             classDecl = classDecl.getParent();
