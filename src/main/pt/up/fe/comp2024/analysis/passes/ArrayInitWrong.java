@@ -101,6 +101,25 @@ public class ArrayInitWrong extends AnalysisVisitor{
     private Void visitNewArray(JmmNode newArray, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
+        JmmNode newArraySize = newArray.getChild(0);
+        if(Objects.equals(newArraySize.getKind(), "VarRefExpr")){
+            newArraySize = getActualTypeVarRef(newArraySize, currentMethod);
+            if(Objects.equals(newArraySize.getKind(), "VarRefExpr"))
+                newArraySize = getActualTypeVarRef(newArraySize);
+        }
+        else if(Objects.equals(newArraySize.getKind(), "FunctionCall")){
+            newArraySize = getActualTypeFunctionCall(newArraySize);
+        }
+
+        if(!(Objects.equals(newArraySize.getKind(), "IntegerLiteral") || Objects.equals(newArraySize.getKind(), "IntegerType")) ){
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(newArray),
+                    NodeUtils.getColumn(newArray),
+                    "New array error",
+                    null)
+            );
+        }
         if(Objects.equals(newArray.getParent().getKind(), "Length") || Objects.equals(newArray.getParent().getKind(), "FunctionCall"))
             addReport(Report.newError(
                     Stage.SEMANTIC,
@@ -111,5 +130,68 @@ public class ArrayInitWrong extends AnalysisVisitor{
             );
 
         return null;
+    }
+
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getDescendants()) {
+            if(Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                if(Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                    ret = node.getChild(0);
+                    break;
+                }
+            }
+        }
+
+
+        return ret;
+    }
+
+    private JmmNode getActualTypeVarRef(JmmNode varRefExpr, String methodName){
+        JmmNode ret = varRefExpr;
+        JmmNode classDecl = varRefExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node1 : classDecl.getChildren()) {
+            if(node1.get("name").equals(methodName)) {
+                for (JmmNode node : node1.getDescendants()) {
+                    if (Objects.equals(node.getKind(), "Param") || Objects.equals(node.getKind(), "VarDecl")) {
+                        if (Objects.equals(node.get("name"), varRefExpr.get("name"))) {
+                            ret = node.getChild(0);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return ret;
+    }
+
+    private JmmNode getActualTypeFunctionCall(JmmNode functionCallExpr){
+        String methodName = functionCallExpr.get("name");
+        JmmNode ret = functionCallExpr;
+        JmmNode classDecl = functionCallExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getChildren(Kind.METHOD_DECL)) {
+            if(Objects.equals(node.get("name"), methodName)) {
+                ret = node.getChild(0).getChild(0);
+                break;
+            }
+        }
+
+
+        return ret;
     }
 }
