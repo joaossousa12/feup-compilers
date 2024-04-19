@@ -37,7 +37,20 @@ public class IncompatibleArguments extends AnalysisVisitor {
         int numParams2 = 0;
         List<String> paramTypes1 = new ArrayList<>();
         for(int i = 1; i <= numParams1; i++) {
-            paramTypes1.add(getActualTypeVarRef(methodCall.getChild(i)).getKind());
+            if(Objects.equals(methodCall.getChild(i).getKind(), "VarRefExpr")){
+                paramTypes1.add(getActualTypeVarRef(methodCall.getChild(i)).getKind());
+            }
+            else if(Objects.equals(methodCall.getChild(i).getKind(), "FunctionCall")){
+                paramTypes1.add(getActualTypeFunctionCall(methodCall.getChild(i)).getKind());
+            }
+            else {
+                if(Objects.equals(methodCall.getChild(i).getKind(), "IntegerLiteral"))
+                    paramTypes1.add("IntegerType");
+                else if(Objects.equals(methodCall.getChild(i).getKind(), "BooleanLiteral"))
+                    paramTypes1.add("BooleanType");
+                else
+                    paramTypes1.add(methodCall.getChild(i).getKind());
+            }
         }
         List<String> paramTypes = new ArrayList<>();
         for(JmmNode method : classDecl.getChildren()) {
@@ -83,6 +96,25 @@ public class IncompatibleArguments extends AnalysisVisitor {
                     ret = node.getChild(0);
                     break;
                 }
+            }
+        }
+
+
+        return ret;
+    }
+
+    private JmmNode getActualTypeFunctionCall(JmmNode functionCallExpr){
+        String methodName = functionCallExpr.get("name");
+        JmmNode ret = functionCallExpr;
+        JmmNode classDecl = functionCallExpr;
+        while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
+            classDecl = classDecl.getParent();
+        }
+
+        for(JmmNode node : classDecl.getChildren(Kind.METHOD_DECL)) {
+            if(Objects.equals(node.get("name"), methodName)) {
+                ret = node.getChild(0).getChild(0);
+                break;
             }
         }
 

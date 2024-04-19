@@ -33,10 +33,22 @@ public class DifferentTypeOp extends AnalysisVisitor {
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
         JmmNode left = binaryOp.getChild(0);
+
+        while(Objects.equals("Paren", left.getKind()))
+            left = left.getChild(0);
+
         while(Objects.equals(left.getKind(), "BinaryOp")){
             left = binaryOpRecurs(left);
         }
+
         JmmNode right = binaryOp.getChild(1);
+
+        while(Objects.equals("Paren", right.getKind()))
+            right = right.getChild(0);
+
+        while(Objects.equals(right.getKind(), "BinaryOp")){
+            right = binaryOpRecurs(right);
+        }
         String operator = binaryOp.get("op");
 
         if(Objects.equals(left.getKind(), "VarRefExpr")){
@@ -92,10 +104,20 @@ public class DifferentTypeOp extends AnalysisVisitor {
     private JmmNode binaryOpRecurs(JmmNode binaryOp){
         JmmNode left = binaryOp.getChild(0);
 
+        while(Objects.equals("Paren", left.getKind()))
+            left = left.getChild(0);
+
         if(Objects.equals(left.getKind(), "BinaryOp"))
             left = binaryOpRecurs(left);
 
         JmmNode right = binaryOp.getChild(1);
+
+        while(Objects.equals("Paren", right.getKind()))
+            right = right.getChild(0);
+
+        if(Objects.equals(right.getKind(), "BinaryOp"))
+            right = binaryOpRecurs(right);
+
         String operator = binaryOp.get("op");
 
         if(Objects.equals(left.getKind(), "VarRefExpr")){

@@ -33,7 +33,18 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
         if(Objects.equals(index.getKind(), "VarRefExpr"))
             index = getActualTypeVarRef(index);
 
-        if(!Objects.equals(index.getKind(), "IntegerLiteral") && !Objects.equals(index.getKind(), "IntegerType")){
+        if(Objects.equals(index.getKind(), "BinaryOp")){
+            if(!(Objects.equals(index.get("op"), "+") || Objects.equals(index.get("op"), "-") || Objects.equals(index.get("op"), "*") || Objects.equals(index.get("op"), "/")))
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(arrayIndex),
+                        NodeUtils.getColumn(arrayIndex),
+                        "Array index is not integer type.",
+                        null)
+                );
+            return null;
+        }
+        else if(!Objects.equals(index.getKind(), "IntegerLiteral") && !Objects.equals(index.getKind(), "IntegerType")){
             var message = "Array index is not integer type.";
             addReport(Report.newError(
                     Stage.SEMANTIC,
@@ -42,17 +53,9 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
                     message,
                     null)
             );
+            return null;
         }
-        else if(Objects.equals(index.getKind(), "BinaryOp")){
-            if(!(Objects.equals(index.getChild(0).get("op"), "+") || Objects.equals(index.getChild(0).get("op"), "-") || Objects.equals(index.getChild(0).get("op"), "*") || Objects.equals(index.getChild(0).get("op"), "/")))
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(arrayIndex),
-                        NodeUtils.getColumn(arrayIndex),
-                        "Array index is not integer type.",
-                        null)
-                );
-        }
+
 
         return null;
     }
