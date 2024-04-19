@@ -197,29 +197,7 @@ public class JasminGenerator {
             default -> "Type" + elementType + "not implemented";
         };
     }
-
-    private String getObjectType(Type type) {
-        var code = new StringBuilder();
-        var name = ((ClassType) type).getName();
-        var className = ollirResult.getOllirClass().getClassName();
-        code.append("L");
-        if (name.equals("this")){
-            code.append(className);
-            return code.toString();
-        }
-
-        for (var imports : ollirResult.getOllirClass().getImports()) {
-            if (imports.endsWith(className)) {
-                imports.replaceAll("\\.", "/");
-                code.append(imports);
-                return code.toString();
-            }
-        }
-
-        code.append(name);
-        return code.toString();
-    }
-
+    
 
     private String generateMethod(Method method) {
 
