@@ -27,7 +27,7 @@ public class IncompatibleArguments extends AnalysisVisitor {
     }
 
     private Void visitMethodCall(JmmNode methodCall, SymbolTable table) {
-        if(Objects.equals(methodCall.getChild(0).getKind(), "Object") && methodCall.getNumChildren() == 1)
+        if(Objects.equals(methodCall.getChild(0).getKind(), "Object"))
             return null;
         JmmNode classDecl = methodCall;
         while (!Objects.equals(classDecl.getKind(), "ClassDecl")) {
@@ -42,9 +42,6 @@ public class IncompatibleArguments extends AnalysisVisitor {
             }
             else if(Objects.equals(methodCall.getChild(i).getKind(), "FunctionCall")){
                 paramTypes1.add(getActualTypeFunctionCall(methodCall.getChild(i)).getKind());
-            }
-            else if(Objects.equals(methodCall.getChild(i).getKind(), "Length")){
-                paramTypes1.add("IntegerType");
             }
             else {
                 if(Objects.equals(methodCall.getChild(i).getKind(), "IntegerLiteral"))
@@ -67,8 +64,6 @@ public class IncompatibleArguments extends AnalysisVisitor {
                 for(JmmNode params : method.getChildren()) {
                     if(Objects.equals(params.getKind(), "Param")) {
                         numParams2++;
-                        if(Objects.equals(params.getChild(0).getKind(), "EllipsisType"))
-                            return null;
                         paramTypes.add(params.getChild(0).getKind());
                     }
                 }
