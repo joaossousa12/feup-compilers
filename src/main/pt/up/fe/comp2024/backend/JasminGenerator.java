@@ -352,10 +352,14 @@ public class JasminGenerator {
             var firstName = ((ClassType) first.getType()).getName();
 
 
-
-            for (var importClass : ollirResult.getOllirClass().getImports()) {
-                if (importClass.endsWith(className)) {
-                    firstName.replaceAll("\\.", "/");
+            if(firstName.equals("this")){
+                code.append(className);
+            }
+            else {
+                for (var importClass : ollirResult.getOllirClass().getImports()) {
+                    if (importClass.endsWith(className)) {
+                        firstName.replaceAll("\\.", "/");
+                    }
                 }
             }
             code.append(firstName).append("/");
