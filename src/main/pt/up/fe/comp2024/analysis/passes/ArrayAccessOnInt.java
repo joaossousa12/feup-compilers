@@ -38,8 +38,6 @@ public class ArrayAccessOnInt extends AnalysisVisitor{
                 return null;
             if(Objects.equals(arrayAccess.getParent().getKind(), "BinaryOp"))
                 return null;
-            if(Objects.equals(arrayAccess.getChild(0).getKind(), "ArrayInit"))
-                return null;
             String assignedTo = arrayAccess.getParent().get("var");
             String assignedToType = null;
             for(JmmNode varDecl : methodDecl.getChildren(Kind.VAR_DECL)){
