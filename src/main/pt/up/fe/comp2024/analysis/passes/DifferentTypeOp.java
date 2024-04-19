@@ -11,6 +11,7 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
+
 import java.util.Objects;
 
 
@@ -33,11 +34,10 @@ public class DifferentTypeOp extends AnalysisVisitor {
 
         JmmNode left = binaryOp.getChild(0);
         while(Objects.equals(left.getKind(), "BinaryOp")){
-            left = left.getChild(0);
+            left = binaryOpRecurs(left);
         }
         JmmNode right = binaryOp.getChild(1);
         String operator = binaryOp.get("op");
-        //TODO pode ficar mais clean se mudarmos e usarmos os metodos no typeUtils (ver para a frente)
 
         if(Objects.equals(left.getKind(), "VarRefExpr")){
             left = getActualTypeVarRef(left, currentMethod);
@@ -87,6 +87,66 @@ public class DifferentTypeOp extends AnalysisVisitor {
         }
 
         return null;
+    }
+
+    private JmmNode binaryOpRecurs(JmmNode binaryOp){
+        JmmNode left = binaryOp.getChild(0);
+
+        if(Objects.equals(left.getKind(), "BinaryOp"))
+            left = binaryOpRecurs(left);
+
+        JmmNode right = binaryOp.getChild(1);
+        String operator = binaryOp.get("op");
+
+        if(Objects.equals(left.getKind(), "VarRefExpr")){
+            left = getActualTypeVarRef(left, currentMethod);
+            if(Objects.equals(left.getKind(), "VarRefExpr"))
+                left = getActualTypeVarRef(left);
+        }
+
+        else if(Objects.equals(left.getKind(), "FunctionCall"))
+            left = getActualTypeFunctionCall(left);
+
+        if(Objects.equals(right.getKind(), "VarRefExpr")){
+            right = getActualTypeVarRef(right, currentMethod);
+            if(Objects.equals(right.getKind(), "VarRefExpr"))
+                right = getActualTypeVarRef(right);
+        }
+
+        else if(Objects.equals(right.getKind(), "FunctionCall")){
+            right = getActualTypeFunctionCall(right);
+        }
+
+
+        // arithmetic operators
+        if(Objects.equals(operator, "+") || Objects.equals(operator, "-") || Objects.equals(operator, "/") || Objects.equals(operator, "*") || Objects.equals(operator, ">") || Objects.equals(operator, "<")){
+            if(!(Objects.equals(left.getKind(), "ArrayAccess") || Objects.equals(left.getKind(), "IntegerLiteral") || Objects.equals(left.getKind(), "IntegerType")) || !(Objects.equals(right.getKind(), "ArrayAccess") || Objects.equals(right.getKind(), "IntegerLiteral") || Objects.equals(right.getKind(), "IntegerType"))){
+                var message = String.format("Either '%s' or '%s' is not integer type (arithmetic).", left.getKind(), right.getKind());
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(binaryOp),
+                        NodeUtils.getColumn(binaryOp),
+                        message,
+                        null)
+                );
+            }
+        }
+        // boolean operators
+        else{
+            if(!(Objects.equals(left.getKind(), "BooleanLiteral") ||  Objects.equals(left.getKind(), "BooleanType")) || !(Objects.equals(right.getKind(), "BooleanLiteral") ||  Objects.equals(right.getKind(), "BooleanType"))){
+                var message = String.format("Either '%s' or '%s' is not boolean type.", left.getKind(), right.getKind());
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(binaryOp),
+                        NodeUtils.getColumn(binaryOp),
+                        message,
+                        null)
+                );
+            }
+        }
+
+        return binaryOp.getChild(0);
+
     }
 
     private JmmNode getActualTypeVarRef(JmmNode varRefExpr, String methodName){
