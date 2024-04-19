@@ -35,6 +35,12 @@ public class AssignIntToBool extends AnalysisVisitor{
                 type=decl.getChild(0).getKind();
             }
         }
+
+        JmmNode classDecl = assign;
+        while(!Objects.equals(classDecl.getKind(), "ClassDecl")){
+            classDecl = classDecl.getParent();
+        }
+
         if(Objects.equals(type, "BooleanType")){
             if(Objects.equals(assign.getChild(0).getKind(), "IntegerLiteral") || Objects.equals(assign.getChild(0).getKind(), "NewClass")){
                 var message = "Assigning an integer or an object to a boolean.";
@@ -45,6 +51,22 @@ public class AssignIntToBool extends AnalysisVisitor{
                         message,
                         null)
                 );
+            }
+        }
+        else if(Objects.equals(assign.getChild(0).getKind(), "FunctionCall")){
+            for(JmmNode methodDecl : classDecl.getChildren(Kind.METHOD_DECL)){
+                if(Objects.equals(methodDecl.get("name"), assign.getChild(0).get("name"))){
+                    if(!Objects.equals(methodDecl.getChild(0).getChild(0).getKind(), type)){
+                        var message = "method Signature Wrong Literal Type Invalid";
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(assign),
+                                NodeUtils.getColumn(assign),
+                                message,
+                                null)
+                        );
+                    }
+                }
             }
         }
         return null;
