@@ -353,7 +353,7 @@ public class JasminGenerator {
             else {
                 for (var importClass : ollirResult.getOllirClass().getImports()) {
                     if (importClass.endsWith(className)) {
-                        name.replaceAll("\\.", "/");
+                        name.replace(".", "/");
                     }
                 }
             }
@@ -374,11 +374,6 @@ public class JasminGenerator {
 
 
 
-        } else if (type == CallType.invokeinterface) {
-            var code = new StringBuilder();
-            code.append("invokeinterface ");
-
-            return code.toString();
         } else if (type == CallType.invokespecial) {
             String className;
 
@@ -396,15 +391,15 @@ public class JasminGenerator {
             //var className = ollirResult.getOllirClass().getClassName();
             if (callInstruction.getArguments().isEmpty()
                     || callInstruction.getArguments().get(0).getType().getTypeOfElement().equals(ElementType.THIS)){
-                code.append(className);
+                code.append(getQualifiedImports(className));
             }
             else {
                 for (var importClass : ollirResult.getOllirClass().getImports()) {
                     if (importClass.endsWith(className)) {
-                        className.replaceAll("\\.", "/");
+                        className.replace(".", "/");
                     }
                 }
-                code.append(className);
+                code.append(getQualifiedImports(className));
             }
             code.append("/<init>(");
             for (var agr :callInstruction.getArguments()){
@@ -437,15 +432,16 @@ public class JasminGenerator {
 
 
             if (name.equals("this")){
-                code.append(className);
+                code.append(getQualifiedImports(className));
             }
             else {
                 for (var importClass : ollirResult.getOllirClass().getImports()) {
                     if (importClass.endsWith(name)) {
-                        name.replaceAll("\\.", "/");
+                        name.replace(".", "/");
                     }
                 }
-                code.append(name);
+                //code.append(name);
+                code.append(getQualifiedImports(className));
             }
 
             code.append("/");
@@ -470,30 +466,25 @@ public class JasminGenerator {
                 className = getQualifiedImports(((ClassType) callInstruction.getCaller().getType()).getName());
 
             var code = new StringBuilder();
-            for (var agr : callInstruction.getArguments()){
+            for (var agr : callInstruction.getArguments()) {
                 code.append(generators.apply(agr));
             }
             if (callInstruction.getReturnType().getTypeOfElement().name().equals("OBJECTREF")) {
                 //var className = ollirResult.getOllirClass().getClassName();
-                code.append("new ").append(className).append(NL);
+                code.append("new ").append(getQualifiedImports(className)).append(NL);
                 code.append("dup").append(NL);
             }
 
             return code.toString();
-        } else if (type == CallType.arraylength) {
-            var code = new StringBuilder();
-            code.append(generators.apply(callInstruction.getArguments().get(0)));
-            code.append("arraylength").append(NL);
-
-            return code.toString();
-        } else if (type == CallType.ldc) {
-            var code = new StringBuilder();
-            code.append(generators.apply(callInstruction.getArguments().get(0))).append(NL);
-
-            return code.toString();
-        } else {
-            code = null; // ERRO
         }
+//        } else if (type == CallType.ldc) {
+//            var code = new StringBuilder();
+//            code.append(generators.apply(callInstruction.getArguments().get(0))).append(NL);
+//
+//            return code.toString();
+//        } else {
+//            code = null; // ERRO
+//        }
 
         return code;
     }
