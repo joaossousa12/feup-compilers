@@ -34,6 +34,8 @@ public class ArrayAccessOnInt extends AnalysisVisitor{
         }
 
         if(Objects.equals(arrayAccess.getChild(0).getKind(), "ArrayInit")){
+            if(Objects.equals(arrayAccess.getParent().getKind(), "WhileStmt"))
+                return null;
             String assignedTo = arrayAccess.getParent().get("var");
             String assignedToType = null;
             for(JmmNode varDecl : methodDecl.getChildren(Kind.VAR_DECL)){

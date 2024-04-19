@@ -46,6 +46,9 @@ public class ArrayInitWrong extends AnalysisVisitor{
         if(Objects.equals(arrayInit.getParent().getKind(), "ArrayAccess"))
             return null;
 
+        if(Objects.equals(arrayInit.getParent().getKind(), "WhileStmt   "))
+            return null;
+
         String variable = arrayInit.getParent().get("var");
         String type = null;
         boolean array = false;
