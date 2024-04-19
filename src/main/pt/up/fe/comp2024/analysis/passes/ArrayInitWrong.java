@@ -17,6 +17,7 @@ public class ArrayInitWrong extends AnalysisVisitor{
     public void buildVisitor(){
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit("ArrayInit", this::visitArrayInit);
+        addVisit("NewArray", this::visitNewArray);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -93,6 +94,21 @@ public class ArrayInitWrong extends AnalysisVisitor{
             }
         }
 
+
+        return null;
+    }
+
+    private Void visitNewArray(JmmNode newArray, SymbolTable table){
+        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
+
+        if(Objects.equals(newArray.getParent().getKind(), "Length") || Objects.equals(newArray.getParent().getKind(), "FunctionCall"))
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(newArray),
+                    NodeUtils.getColumn(newArray),
+                    "New array error",
+                    null)
+            );
 
         return null;
     }
