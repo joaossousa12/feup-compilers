@@ -133,7 +133,7 @@ expr
     | expr op= OR expr #BinaryOp //
     | value= INTEGER #IntegerLiteral //
     | value= (TRUE | FALSE) #BooleanLiteral //
-    | (name= ID | name= LENGTH | name= MAIN | name= THIS) #VarRefExpr //
+    | (name= ID | name= LENGTH | name= MAIN) #VarRefExpr //
     ;
 
 

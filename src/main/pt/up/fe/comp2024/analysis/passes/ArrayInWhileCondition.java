@@ -28,33 +28,75 @@ public class ArrayInWhileCondition extends AnalysisVisitor{
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
         JmmNode condition = whileNode.getChild(0);
-        boolean array = false;
-        if(Objects.equals(condition.getKind(), "VarRefExpr")){
-            JmmNode node = getActualTypeVarRef(condition, currentMethod);
-            array = Objects.equals(node.getKind(), "Array");
+
+        if(Objects.equals(condition.getKind(), "VarRefExpr"))
+            condition = getActualTypeVarRef(condition, currentMethod);
+
+        if(Objects.equals(condition.getKind(), "BinaryOp")){
+            JmmNode left = condition.getChild(0);
+            JmmNode right = condition.getChild(1);
+
+            if(Objects.equals(left.getKind(), "VarRefExpr"))
+                left = getActualTypeVarRef(left, currentMethod);
+
+            if(Objects.equals(right.getKind(), "VarRefExpr"))
+                right = getActualTypeVarRef(right, currentMethod);
+
+            if((Objects.equals(condition.get("op"), "||") || Objects.equals(condition.get("op"), "&&"))){
+                if(!checkIfBoolean(left) || !checkIfBoolean(right)) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(condition),
+                            NodeUtils.getColumn(condition),
+                            "Condition is not a boolean",
+                            null)
+                    );
+
+                    return null;
+                }
+                else
+                    return null;
+            }
+            if((Objects.equals(condition.get("op"), ">") || Objects.equals(condition.get("op"), "<"))){
+                if(!checkIfInteger(left) || !checkIfInteger(right)){
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(condition),
+                            NodeUtils.getColumn(condition),
+                            "Condition is not a boolean",
+                            null)
+                    );
+
+                    return null;
+                }
+                else
+                    return null;
+            }
+            else {
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(condition),
+                        NodeUtils.getColumn(condition),
+                        "Condition is not a boolean",
+                        null)
+                );
+
+                return null;
+            }
+
         }
 
-        if(array){
+
+
+
+        if(!checkIfBoolean(condition))
             addReport(Report.newError(
                     Stage.SEMANTIC,
-                    NodeUtils.getLine(whileNode),
-                    NodeUtils.getColumn(whileNode),
-                    "Array as while condition",
+                    NodeUtils.getLine(condition),
+                    NodeUtils.getColumn(condition),
+                    "Condition is not a boolean",
                     null)
             );
-
-            return null;
-        }
-
-        if(Objects.equals(condition.getKind(), "ArrayInit")){
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(whileNode),
-                    NodeUtils.getColumn(whileNode),
-                    "ArrayInit only on while",
-                    null)
-            );
-        }
 
         return null;
     }
@@ -81,5 +123,43 @@ public class ArrayInWhileCondition extends AnalysisVisitor{
 
 
         return ret;
+    }
+
+    private boolean checkIfBoolean(JmmNode node){
+        if(Objects.equals(node.getKind(), "FunctionCall")){
+            JmmNode classDecl = node;
+            while(!Objects.equals(classDecl.getKind(), "ClassDecl")){
+                classDecl = classDecl.getParent();
+            }
+
+            JmmNode retType = null;
+            for(JmmNode method : classDecl.getChildren(Kind.METHOD_DECL)){
+                if(Objects.equals(method.get("name"), node.get("name"))){
+                    retType = method.getChild(0).getChild(0);
+                }
+            }
+
+            return  checkIfBoolean(retType);
+        }
+        return Objects.equals(node.getKind(), "BooleanLiteral") || Objects.equals(node.getKind(), "BooleanType");
+    }
+
+    private boolean checkIfInteger(JmmNode node){
+        if(Objects.equals(node.getKind(), "FunctionCall")){
+            JmmNode classDecl = node;
+            while(!Objects.equals(classDecl.getKind(), "ClassDecl")){
+                classDecl = classDecl.getParent();
+            }
+
+            JmmNode retType = null;
+            for(JmmNode method : classDecl.getChildren(Kind.METHOD_DECL)){
+                if(Objects.equals(method.get("name"), node.get("name"))){
+                    retType = method.getChild(0).getChild(0);
+                }
+            }
+
+            return  checkIfInteger(retType);
+        }
+        return Objects.equals(node.getKind(), "IntegerLiteral") || Objects.equals(node.getKind(), "IntegerType") || Objects.equals(node.getKind(), "ArrayAccess");
     }
 }
