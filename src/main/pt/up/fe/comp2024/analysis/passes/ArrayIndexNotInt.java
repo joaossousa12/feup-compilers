@@ -36,6 +36,8 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
         if(Objects.equals(index.getKind(), "VarRefExpr"))
             index = getActualTypeVarRef(index);
 
+
+
         if(Objects.equals(index.getKind(), "BinaryOp")){
             if(!(Objects.equals(index.get("op"), "+") || Objects.equals(index.get("op"), "-") || Objects.equals(index.get("op"), "*") || Objects.equals(index.get("op"), "/")))
                 addReport(Report.newError(
@@ -47,7 +49,7 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
                 );
             return null;
         }
-        else if(!Objects.equals(index.getKind(), "IntegerLiteral") && !Objects.equals(index.getKind(), "IntegerType")){
+        else if(!Objects.equals(index.getKind(), "IntegerLiteral") && !Objects.equals(index.getKind(), "IntegerType") && !Objects.equals(index.getKind(), "ArrayAccess")){
             var message = "Array index is not integer type.";
             addReport(Report.newError(
                     Stage.SEMANTIC,
