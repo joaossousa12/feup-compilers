@@ -49,6 +49,9 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
                 );
             return null;
         }
+        else if(Objects.equals(index.getKind(), "FunctionCall")){
+            return null; // TODO precisa de ser extended caso haja funçoes n validas por n terem return type int
+        }
         else if(!Objects.equals(index.getKind(), "IntegerLiteral") && !Objects.equals(index.getKind(), "IntegerType") && !Objects.equals(index.getKind(), "ArrayAccess")){
             var message = "Array index is not integer type.";
             addReport(Report.newError(
