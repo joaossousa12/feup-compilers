@@ -102,6 +102,10 @@ public class ArrayInitWrong extends AnalysisVisitor{
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
         JmmNode newArraySize = newArray.getChild(0);
+
+        while(Objects.equals(newArraySize.getKind(), "Paren"))
+            newArraySize = newArraySize.getChild(0);
+
         if(Objects.equals(newArraySize.getKind(), "VarRefExpr")){
             newArraySize = getActualTypeVarRef(newArraySize, currentMethod);
             if(Objects.equals(newArraySize.getKind(), "VarRefExpr"))
