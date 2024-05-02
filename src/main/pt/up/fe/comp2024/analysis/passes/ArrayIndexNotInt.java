@@ -30,6 +30,9 @@ public class ArrayIndexNotInt extends AnalysisVisitor{
 
         JmmNode index = arrayIndex.getChild(1);
 
+        while(Objects.equals(index.getKind(), "Paren"))
+            index = index.getChild(0);
+
         if(Objects.equals(index.getKind(), "VarRefExpr"))
             index = getActualTypeVarRef(index);
 
