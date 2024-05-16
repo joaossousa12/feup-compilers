@@ -244,10 +244,10 @@ public class JasminGenerator {
 
         int i = method.getVarTable().size();
 
-        var insta = method.getInstructions().size() - 1;
+       // var insta = method.getInstructions().size() - 1;
 
 
-        code.append(TAB).append(".limit stack " + insta).append(NL);
+        code.append(TAB).append(".limit stack 99").append(NL);
         code.append(TAB).append(".limit locals " + i).append(NL);
 
         for (var inst : method.getInstructions()) {
