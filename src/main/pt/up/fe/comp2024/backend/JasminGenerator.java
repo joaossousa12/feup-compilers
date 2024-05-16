@@ -242,13 +242,13 @@ public class JasminGenerator {
 
         // Add limits
 
-        int i = method.getVarTable().size();
+        //int i = method.getVarTable().size();
 
        // var insta = method.getInstructions().size() - 1;
 
 
         code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals " + i).append(NL);
+        code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
