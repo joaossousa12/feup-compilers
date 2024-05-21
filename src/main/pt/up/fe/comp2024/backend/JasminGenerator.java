@@ -57,8 +57,8 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(OpCondInstruction.class, this::generateOpCond);
     }
-
     public List<Report> getReports() {
         return reports;
     }
@@ -560,6 +560,7 @@ public class JasminGenerator {
             case MUL -> "imul";
             case DIV -> "idiv";
             case SUB -> "isub";
+            case LTH -> "ilth";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -598,6 +599,19 @@ public class JasminGenerator {
                 return importedClassName.replace(".", "/");
 
         return className;
+    }
+
+    private String generateOpCond(OpCondInstruction OpCond){
+        var code = new StringBuilder();
+
+        OpInstruction opType = OpCond.getCondition();
+        String label = OpCond.getLabel(); // label penso q é preciso pq debug
+
+        if (opType instanceof BinaryOpInstruction instruction) generateBinaryOp(instruction);
+        code.append("\n\t").append("ifne ").append(label).append("\n");
+
+
+        return code.toString();
     }
 
 }
