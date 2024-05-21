@@ -628,9 +628,28 @@ public class JasminGenerator {
 
 
     private String generateBranch(CondBranchInstruction condBranchInstruction){
-
+        var code = new StringBuilder();
         Instruction instruc = condBranchInstruction.getCondition();
+        String label = condBranchInstruction.getLabel();
+        InstructionType instType = instruc.getInstType();
 
+        if(instType == InstructionType.BINARYOPER){
+            Element lhs = ((BinaryOpInstruction) instruc).getLeftOperand();
+            Element rhs = ((BinaryOpInstruction) instruc).getRightOperand();
+
+            OperationType operType = ((BinaryOpInstruction) instruc).getOperation().getOpType();
+
+            // 2 tipos ou é LH OU É GTE
+
+            if(operType == OperationType.LTH || operType == OperationType.GTE){
+                code.append(lhs.getType().getTypeOfElement());
+                // TO BE CONTINUED NAO MEXAS
+            }
+
+
+        }
+
+        /*
         if(instruc.getInstType() == InstructionType.UNARYOPER){
 
         } else if(instruc.getInstType() == InstructionType.BINARYOPER){
@@ -644,7 +663,7 @@ public class JasminGenerator {
         } else {
 
         }
-
+*/
         return "";
     }
 
