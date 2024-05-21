@@ -199,6 +199,7 @@ public class JasminGenerator {
                 String className = ((ClassType) type).getName();
                 yield code.append("L").append(className).append(";").toString();
             }
+            case ARRAYREF -> code.append("[I").toString();
             case CLASS -> code.append("L").append(getQualifiedImports(elementType.toString())).append(";").toString();
             default -> "Type" + elementType + "not implemented";
         };
@@ -447,10 +448,16 @@ public class JasminGenerator {
 
         else if (type == CallType.NEW) {
             var code = new StringBuilder();
-            String className;
+            String className = "";
 
             if (callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS)
                 className = ((ClassType) callInstruction.getCaller().getType()).getName();
+
+            else if(callInstruction.getCaller().getType().getTypeOfElement() == ElementType.ARRAYREF){
+                String arrayref = ""; //TODO fix this in future
+
+                code.append(arrayref).append("\tnewarray int\n");
+            }
 
             else
                 className = getQualifiedImports(((ClassType) callInstruction.getCaller().getType()).getName());
