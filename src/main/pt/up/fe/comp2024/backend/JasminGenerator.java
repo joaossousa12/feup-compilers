@@ -566,6 +566,7 @@ public class JasminGenerator {
             case DIV -> "idiv";
             case SUB -> "isub";
             case LTH -> "ilth";
+            case GTE -> "igte";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -617,10 +618,10 @@ public class JasminGenerator {
         return code.toString();
     }
 
-        private String generateGoto(GotoInstruction gotoInstruction){
+            private String generateGoto(GotoInstruction gotoInstruction){
             var code = new StringBuilder();
 
-            code.append("goto").append(gotoInstruction.getLabel()).append("\n");
+            code.append("goto ").append(gotoInstruction.getLabel()).append("\n");
 
             return code.toString();
         }
