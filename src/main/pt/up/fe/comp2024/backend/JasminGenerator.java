@@ -340,6 +340,7 @@ public class JasminGenerator {
 
     private String generateCall(CallInstruction callInstruction){
         CallType type = callInstruction.getInvocationType();
+        boolean flag = true;
 
         if (type == CallType.invokevirtual) {
             var className = getQualifiedImports(((ClassType) callInstruction.getCaller().getType()).getName());
@@ -457,14 +458,23 @@ public class JasminGenerator {
             else if(callInstruction.getCaller().getType().getTypeOfElement() == ElementType.ARRAYREF){
                 //String arrayref = ""; //TODO fix this in future
 
-                code/*.append(arrayref)*/.append("newarray int\n");
+//                for(Element elem: callInstruction.getOperands()){
+//                    code.append(generators.apply(elem));
+//                }
+                for (var argument : callInstruction.getArguments())
+                    code.append(generators.apply(argument));
+
+                code/*.append(arrayref)*/.append("\tnewarray int\n");
+                flag = false;
             }
 
             else
                 className = getQualifiedImports(((ClassType) callInstruction.getCaller().getType()).getName());
 
-            for (var argument : callInstruction.getArguments())
-                code.append(generators.apply(argument));
+            if(flag){
+                for (var argument : callInstruction.getArguments())
+                    code.append(generators.apply(argument));
+            }
 
             if (Objects.equals(callInstruction.getReturnType().getTypeOfElement().name(), "OBJECTREF"))
                 code.append("new ").append(getQualifiedImports(className)).append(NL).append("dup").append(NL);
