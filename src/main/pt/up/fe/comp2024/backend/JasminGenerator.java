@@ -25,6 +25,8 @@ public class JasminGenerator {
 
     private final OllirResult ollirResult;
 
+    int stack_size;
+    int current_stack_size;
     List<Report> reports;
 
     String code;
@@ -208,6 +210,8 @@ public class JasminGenerator {
 
     private String generateMethod(Method method) {
 
+        stack_size = 0;
+        current_stack_size = 0;
         // set method
         currentMethod = method;
 
@@ -243,13 +247,12 @@ public class JasminGenerator {
 
         // Add limits
 
-        //int i = method.getVarTable().size();
 
        // var insta = method.getInstructions().size() - 1;
 
 
         code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
+        code.append(TAB).append(".limit locals ").append(method.getVarTable().size()).append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
