@@ -55,6 +55,9 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(CondBranchInstruction.class, this::generateBranch);
+        //generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
+        generators.put(GotoInstruction.class, this::generateGoto);
     }
 
     public List<Report> getReports() {
@@ -248,8 +251,8 @@ public class JasminGenerator {
        // var insta = method.getInstructions().size() - 1;
 
 
-        code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
+        code.append(TAB).append(".limit stack 10").append(NL);
+        code.append(TAB).append(".limit locals 10").append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
@@ -293,10 +296,8 @@ public class JasminGenerator {
 
         if(elemType == ElementType.INT32 || elemType == ElementType.BOOLEAN)
             return code.append("istore ").append(reg).append(NL).toString();
-
-        else if(elemType == ElementType.OBJECTREF)
+        else if (elemType == ElementType.OBJECTREF || elemType == ElementType.ARRAYREF)
             return code.append("astore ").append(reg).append(NL).toString();
-
         else
             return "Error in generate assign!";
 
@@ -454,9 +455,9 @@ public class JasminGenerator {
                 className = ((ClassType) callInstruction.getCaller().getType()).getName();
 
             else if(callInstruction.getCaller().getType().getTypeOfElement() == ElementType.ARRAYREF){
-                String arrayref = ""; //TODO fix this in future
+                //String arrayref = ""; //TODO fix this in future
 
-                code.append(arrayref).append("\tnewarray int\n");
+                code/*.append(arrayref)*/.append("newarray int\n");
             }
 
             else
@@ -469,6 +470,10 @@ public class JasminGenerator {
                 code.append("new ").append(getQualifiedImports(className)).append(NL).append("dup").append(NL);
 
             return code.toString();
+        }
+
+        else if(Objects.equals(type.toString(), "arraylength")){
+            return generators.apply(callInstruction.getOperands().get(0)) + "arraylength" + NL;
         }
 
         return code;
@@ -595,6 +600,45 @@ public class JasminGenerator {
                 return importedClassName.replace(".", "/");
 
         return className;
+    }
+
+//    private String generateSingleOpCond(SingleOpCondInstruction singleOpCondInstruction){
+//        var code = new StringBuilder();
+//
+//        if(singleOpCondInstruction.getInstType() == InstructionType.NOPER) {
+//
+//        }
+//
+//        return singleOpCondInstruction.getCondition().toString();
+//    }
+
+    private String generateGoto(GotoInstruction gotoInstruction){
+        var code = new StringBuilder();
+
+        code.append("goto").append(gotoInstruction.getLabel()).append("\n");
+
+        return code.toString();
+    }
+
+    private String generateBranch(CondBranchInstruction condBranchInstruction){
+
+        Instruction instruc = condBranchInstruction.getCondition();
+
+        if(instruc.getInstType() == InstructionType.UNARYOPER){
+
+        } else if(instruc.getInstType() == InstructionType.BINARYOPER){
+            BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) instruc;
+
+            if(binaryOpInstruction.getOperation().getOpType() == OperationType.LTH){
+                if(binaryOpInstruction.getLeftOperand() instanceof LiteralElement){
+
+                }
+            }
+        } else {
+
+        }
+
+        return "";
     }
 
 }
