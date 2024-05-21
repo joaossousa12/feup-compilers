@@ -30,6 +30,7 @@ public class JasminGenerator {
     String code;
 
     Method currentMethod;
+    int counter = 1;
 
     Field field;
     ClassUnit classUnit;
@@ -251,8 +252,8 @@ public class JasminGenerator {
        // var insta = method.getInstructions().size() - 1;
 
 
-        code.append(TAB).append(".limit stack 10").append(NL);
-        code.append(TAB).append(".limit locals 10").append(NL);
+        code.append(TAB).append(".limit stack 20").append(NL);
+        code.append(TAB).append(".limit locals 20").append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
@@ -275,8 +276,42 @@ public class JasminGenerator {
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
 
+        if(assign.getDest() instanceof ArrayOperand op){
+            code.append("aload");
 
-        code.append(generators.apply(assign.getRhs()));
+            if(Objects.equals(op.getName(), "this"))
+                code.append("_0").append(NL);
+            else{
+                var reg = currentMethod.getVarTable().get(op.getName()).getVirtualReg();
+                code.append(" ").append(reg).append(NL);
+            }
+            code.append("iload ").append(this.counter).append(NL);
+        }
+
+        boolean flag2 = true;
+
+        if(assign.getRhs() instanceof SingleOpInstruction){
+            var l = ((SingleOpInstruction) assign.getRhs()).getSingleOperand();
+
+            if(l instanceof ArrayOperand op){ //Array Access
+                code.append("aload");
+
+                if(Objects.equals(op.getName(), "this"))
+                    code.append("_0").append(NL);
+                else{
+                    var reg = currentMethod.getVarTable().get(op.getName()).getVirtualReg();
+                    code.append(" ").append(reg).append(NL);
+                }
+                code.append("iload ").append(this.counter).append(NL);
+
+                code.append("iaload ").append(NL);
+                flag2 = false;
+            }
+
+        }
+
+        if(flag2)
+            code.append(generators.apply(assign.getRhs()));
 
 
         var lhs = assign.getDest();
@@ -291,6 +326,7 @@ public class JasminGenerator {
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        this.counter = reg;
 
         ElementType elemType = operand.getType().getTypeOfElement();
 
@@ -464,7 +500,7 @@ public class JasminGenerator {
                 for (var argument : callInstruction.getArguments())
                     code.append(generators.apply(argument));
 
-                code/*.append(arrayref)*/.append("\tnewarray int\n");
+                code/*.append(arrayref)*/.append("newarray int\n");
                 flag = false;
             }
 
