@@ -29,7 +29,6 @@ public class JasminGenerator {
     String code;
 
     Method currentMethod;
-    int counter = 1;
 
     int stackNum;
     int currStackNum;
@@ -292,7 +291,7 @@ public class JasminGenerator {
 
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
-
+        String extracode = "";
         if(assign.getDest() instanceof ArrayOperand op){
             this.pushStack(10);
             code.append("aload");
@@ -301,9 +300,14 @@ public class JasminGenerator {
                 code.append("_0").append(NL);
             else{
                 var reg = currentMethod.getVarTable().get(op.getName()).getVirtualReg();
-                code.append(" ").append(reg).append(NL);
+                if(reg < 4)
+                    code.append("_");
+                else
+                    code.append(" ");
+                code.append(reg).append(NL);
             }
-            code.append("iload ").append(this.counter).append(NL);
+
+            code.append(generators.apply(op.getIndexOperands().get(0)));
         }
 
         boolean flag2 = true;
@@ -325,7 +329,8 @@ public class JasminGenerator {
                         code.append(" ");
                     code.append(reg).append(NL);
                 }
-                code.append("iload ").append(this.counter).append(NL);
+
+                code.append(generators.apply(((ArrayOperand) l).getIndexOperands().get(0)));
 
                 code.append("iaload ").append(NL);
                 this.popStack(1);
@@ -334,6 +339,7 @@ public class JasminGenerator {
 
         }
 
+        code.append(extracode);
         if(flag2)
             code.append(generators.apply(assign.getRhs()));
 
@@ -353,7 +359,6 @@ public class JasminGenerator {
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        this.counter = reg;
 
         ElementType elemType = operand.getType().getTypeOfElement();
 
