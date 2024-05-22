@@ -663,12 +663,12 @@ public class JasminGenerator {
             case MUL -> "imul";
             case DIV -> "idiv";
             case SUB -> "isub";
-            case LTH -> "ilth";
-            case GTE -> "igte";
+            case LTH -> "ilth ";
+            case GTE -> "igte ";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
-        code.append(op).append(NL);
+        code.append(op);
         this.popStack(1);
         return code.toString();
     }
@@ -728,7 +728,7 @@ public class JasminGenerator {
         String label = OpCond.getLabel(); // label penso q é preciso pq debug
 
         if (opType instanceof BinaryOpInstruction instruction) code.append(generateBinaryOp(instruction));
-        code.append("\n").append(label).append("\n");
+        code.append(label).append("\n");
         return code.toString();
     }
     private String generateSingleOpCond(SingleOpCondInstruction singleOpCond){
