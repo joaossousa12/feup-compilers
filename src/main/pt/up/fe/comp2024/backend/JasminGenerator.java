@@ -667,15 +667,35 @@ public class JasminGenerator {
             case DIV -> "idiv\n";
             case SUB -> "isub\n";
             case LTH -> helperBinaryOpLTH(binaryOp);
-
-
-            case GTE -> "igte ";
+            case GTE -> helperGTE(binaryOp);
             case ANDB -> helperAndB(binaryOp); // PODE ENTRAR EM LOOP INFINITO
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
         code.append(op);
         this.popStack(1);
+        return code.toString();
+    }
+
+    private String helperGTE(BinaryOpInstruction binaryOp) {
+        var code = new StringBuilder();
+
+        if(binaryOp.getLeftOperand().isLiteral() && binaryOp.getRightOperand().isLiteral()){
+            code.append("if_icmpge ");
+        }
+        else if(binaryOp.getLeftOperand().isLiteral()){
+            code.append("ifle ");
+            // code.append(generators.apply(binaryOp.getRightOperand()));
+        }
+        else if(binaryOp.getRightOperand().isLiteral()){
+            code.append("ifge ");
+            //code.append(generators.apply(binaryOp.getLeftOperand()));
+        }
+        else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
+            code.append("if_icmpge ");
+            //  code.append(generators.apply(binaryOp.getLeftOperand())).append(generators.apply(binaryOp.getRightOperand()));
+        }
+
         return code.toString();
     }
 
