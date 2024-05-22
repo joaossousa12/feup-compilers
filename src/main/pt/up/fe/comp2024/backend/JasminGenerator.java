@@ -741,7 +741,7 @@ public class JasminGenerator {
            // code.append(generators.apply(binaryOp.getRightOperand()));
         }
         else if(binaryOp.getRightOperand().isLiteral()){
-            code.append("iflt ");
+            code.append("sub\n").append("iflt ");
             //code.append(generators.apply(binaryOp.getLeftOperand()));
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
