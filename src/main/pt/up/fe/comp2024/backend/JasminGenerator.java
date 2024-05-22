@@ -107,7 +107,6 @@ public class JasminGenerator {
                 .method public <init>()V
                     aload_0
                 """;
-        this.pushStack(1);
 
         var finishConstruct ="""
                     return
@@ -259,7 +258,7 @@ public class JasminGenerator {
         this.currStackNum = 0;
         this.stackNum = 0;
 
-        code.append(TAB).append(".limit stack ").append(20).append(NL);
+        code.append(TAB).append(".limit stack ").append(STACK_PLACEHOLDER).append(NL);
         code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
 
         for (var inst : method.getInstructions()) {
@@ -362,7 +361,7 @@ public class JasminGenerator {
         ElementType elemType = operand.getType().getTypeOfElement();
 
         if(elemType == ElementType.INT32 || elemType == ElementType.BOOLEAN){
-            this.pushStack(1);
+            //this.pushStack(1);
             return code.append("istore ").append(reg).append(NL).toString();
         }
         else if (elemType == ElementType.OBJECTREF || elemType == ElementType.ARRAYREF || elemType == ElementType.STRING || elemType == ElementType.THIS){
@@ -385,7 +384,7 @@ public class JasminGenerator {
         code.append(generators.apply(op3));
 
         code.append("\tputfield ");
-        this.pushStack(2);
+        this.popStack(2);
         code.append(getQualifiedImports(ollirResult.getOllirClass().getClassName())).append("/");
         code.append(((Operand) op2).getName()).append(" ").append(getJasminType(op2.getType())).append(NL);
 
@@ -659,7 +658,7 @@ public class JasminGenerator {
         }
 
         else if (operand.getType().getTypeOfElement() == ElementType.THIS){
-            this.pushStack(1);
+            //this.pushStack(1);
             return "aload_" + reg + NL;
         }
 
@@ -686,7 +685,7 @@ public class JasminGenerator {
         };
 
         if(binaryOp.getOperation().getOpType() == OperationType.ADD || binaryOp.getOperation().getOpType() == OperationType.MUL || binaryOp.getOperation().getOpType() == OperationType.DIV || binaryOp.getOperation().getOpType() == OperationType.SUB)
-            this.popStack(1);
+            this.popStack(2);
 
         code.append(op);
         return code.toString();
