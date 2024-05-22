@@ -64,8 +64,6 @@ public class JasminGenerator {
         generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CondBranchInstruction.class, this::generateBranch);
-        //generators.put(OpCondInstruction.class, this::generateOpCond);
-        //generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
         generators.put(GotoInstruction.class, this::generateGoto);
     }
     public List<Report> getReports() {
@@ -252,11 +250,6 @@ public class JasminGenerator {
         code.append(")");
 
         code.append(getJasminType(method.getReturnType())).append(NL);
-
-        // Add limits
-
-
-       // var insta = method.getInstructions().size() - 1;
 
         // calculate locals
         Set<Integer> vRegs = new TreeSet<>();
@@ -540,15 +533,10 @@ public class JasminGenerator {
 
             else if(callInstruction.getCaller().getType().getTypeOfElement() == ElementType.ARRAYREF){
                 this.callArgumentsNum = -1;
-                //String arrayref = ""; //TODO fix this in future
-
-//                for(Element elem: callInstruction.getOperands()){
-//                    code.append(generators.apply(elem));
-//                }
                 for (var argument : callInstruction.getArguments())
                     code.append(generators.apply(argument));
 
-                code/*.append(arrayref)*/.append("newarray int\n");
+                code.append("newarray int\n");
                 flag = false;
             }
 
@@ -817,59 +805,6 @@ public class JasminGenerator {
 
         return code.toString();
     }
-/*
-    private String generateBranch(CondBranchInstruction condBranchInstruction){
-        var code = new StringBuilder();
-        Instruction instruc = condBranchInstruction.getCondition(); //condition
-        String label = condBranchInstruction.getLabel();
-        InstructionType instType = instruc.getInstType(); // Binary or Unary
-
-        if(instType == InstructionType.BINARYOPER){
-            Element lhs = ((BinaryOpInstruction) instruc).getLeftOperand();
-            Element rhs = ((BinaryOpInstruction) instruc).getRightOperand();
-
-            OperationType operType = ((BinaryOpInstruction) instruc).getOperation().getOpType();
-            // 2 tipos ou é LH OU É GTE
-            if(operType == OperationType.LTH || operType == OperationType.GTE){
-                code.append(lhs.getType().getTypeOfElement());
-                if(rhs.isLiteral() && ((LiteralElement) rhs).getLiteral().equals("0")){
-                    if(operType == OperationType.LTH) code.append("\tiflt " + label + "\n");
-                    else  code.append("\tifge " + label + "\n");
-            }
-                else{
-                    code.append(rhs.getType().getTypeOfElement());
-                    if(operType == OperationType.LTH) code.append("\tif_icmplt " + label + "\n");
-                    else code.append("\tif_icmpge " + label + "\n");
-                }
-            }
-            else{ // NOPER
-                code.append("\t").append("ifne").append(" ").append(label).append("\n");
-            }
-
-
-        }
-
-        /*
-        if(instruc.getInstType() == InstructionType.UNARYOPER){
-
-        } else if(instruc.getInstType() == InstructionType.BINARYOPER){
-            BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) instruc;
-
-            if(binaryOpInstruction.getOperation().getOpType() == OperationType.LTH){
-                if(binaryOpInstruction.getLeftOperand() instanceof LiteralElement){
-
-                }
-            }
-        } else {
-
-        }
-
-        //TODO do popstacks here when implemented if_icmplt and if_icmge
-
-        return code.toString();
-    }
-    */
-
 
     private void popStack(int amount){
         this.currStackNum -= amount;
