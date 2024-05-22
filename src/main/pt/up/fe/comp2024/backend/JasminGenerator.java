@@ -270,6 +270,9 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
 
         for (var inst : method.getInstructions()) {
+            for(Map.Entry<String,Instruction> label : method.getLabels().entrySet()){
+                if(label.getValue().equals(inst)) code.append(TAB).append(label.getKey()).append(":\n");
+            }
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
@@ -659,10 +662,10 @@ public class JasminGenerator {
         code.append(generators.apply(binaryOp.getRightOperand()));
 
         var op = switch (binaryOp.getOperation().getOpType()) {
-            case ADD -> "iadd";
-            case MUL -> "imul";
-            case DIV -> "idiv";
-            case SUB -> "isub";
+            case ADD -> "iadd\n";
+            case MUL -> "imul\n";
+            case DIV -> "idiv\n";
+            case SUB -> "isub\n";
             case LTH -> helperBinaryOpLTH(binaryOp);
 
 
