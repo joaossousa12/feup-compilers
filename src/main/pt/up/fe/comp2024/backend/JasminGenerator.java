@@ -663,13 +663,34 @@ public class JasminGenerator {
             case MUL -> "imul";
             case DIV -> "idiv";
             case SUB -> "isub";
-            case LTH -> "ilth ";
+            case LTH -> helperBinaryOpLTH(binaryOp);
+
+
             case GTE -> "igte ";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
         code.append(op);
         this.popStack(1);
+        return code.toString();
+    }
+
+    private String helperBinaryOpLTH(BinaryOpInstruction binaryOp){
+        var code = new StringBuilder();
+        if(binaryOp.getRightOperand().isLiteral()){
+            code.append("iflt ");
+            //code.append(generators.apply(binaryOp.getLeftOperand()));
+        }
+        if(binaryOp.getLeftOperand().isLiteral()){
+            code.append("ifgt ");
+           // code.append(generators.apply(binaryOp.getRightOperand()));
+        }
+        if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
+            code.append("if_icmplt ");
+          //  code.append(generators.apply(binaryOp.getLeftOperand())).append(generators.apply(binaryOp.getRightOperand()));
+        }
+
+
         return code.toString();
     }
 
