@@ -690,7 +690,7 @@ public class JasminGenerator {
     public String generateUnaryOp(UnaryOpInstruction unaryOp){
         var code = new StringBuilder();
         code.append(generators.apply(unaryOp.getOperand()));
-        //code.append("iconst_1\n");
+        code.append("iconst_1\n");
         if(unaryOp.getOperation().getOpType() == OperationType.NOT || unaryOp.getOperation().getOpType() == OperationType.NOTB) {
             code.append("ixor\n");
         }
@@ -722,11 +722,9 @@ public class JasminGenerator {
 
     private String helperAndB(BinaryOpInstruction binaryOp){
         var code = new StringBuilder();
+
         code.append("ifne");
         code.append(generators.apply(binaryOp));
-
-
-
 
         return code.toString();
     }
