@@ -264,7 +264,7 @@ public class JasminGenerator {
         this.currStackNum = 0;
         this.stackNum = 0;
 
-        code.append(TAB).append(".limit stack ").append(15).append(NL);
+        code.append(TAB).append(".limit stack ").append(98).append(NL);
         code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
 
         for (var inst : method.getInstructions()) {
