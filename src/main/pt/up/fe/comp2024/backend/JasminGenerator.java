@@ -346,7 +346,7 @@ public class JasminGenerator {
         }
 
         if(operand instanceof ArrayOperand){
-            this.popStack(2);
+            this.popStack(-10);
             return code.append("iastore").append(NL).toString();
         }
 
