@@ -294,7 +294,7 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         if(assign.getDest() instanceof ArrayOperand op){
-            this.pushStack(2);
+            this.pushStack(5);
             code.append("aload");
 
             if(Objects.equals(op.getName(), "this"))
@@ -312,7 +312,7 @@ public class JasminGenerator {
             var l = ((SingleOpInstruction) assign.getRhs()).getSingleOperand();
 
             if(l instanceof ArrayOperand op){ //Array Access
-                this.pushStack(2);
+                this.pushStack(5);
                 code.append("aload");
 
                 if(Objects.equals(op.getName(), "this"))
