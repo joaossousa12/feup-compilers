@@ -643,11 +643,19 @@ public class JasminGenerator {
         this.pushStack(1);
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
-        if(operand.getType().getTypeOfElement() == ElementType.INT32 || operand.getType().getTypeOfElement() == ElementType.BOOLEAN)
-            return "iload " + reg + NL;
+        if(operand.getType().getTypeOfElement() == ElementType.INT32 || operand.getType().getTypeOfElement() == ElementType.BOOLEAN){
+            String temp = " ";
+            if(reg < 4)
+                temp = "_";
+            return "iload" + temp + reg + NL;
+        }
 
-        else if(operand.getType().getTypeOfElement() == ElementType.OBJECTREF || operand.getType().getTypeOfElement() == ElementType.ARRAYREF || operand.getType().getTypeOfElement() == ElementType.STRING || operand.getType().getTypeOfElement() == ElementType.CLASS)
-            return "aload " + reg + NL;
+        else if(operand.getType().getTypeOfElement() == ElementType.OBJECTREF || operand.getType().getTypeOfElement() == ElementType.ARRAYREF || operand.getType().getTypeOfElement() == ElementType.STRING || operand.getType().getTypeOfElement() == ElementType.CLASS){
+            String temp = " ";
+            if(reg < 4)
+                temp = "_";
+            return "aload" + temp + reg + NL;
+        }
 
         else if (operand.getType().getTypeOfElement() == ElementType.THIS)
             return "aload_" + reg + NL;
@@ -669,9 +677,7 @@ public class JasminGenerator {
             case DIV -> "idiv\n";
             case SUB -> "isub\n";
             case LTH -> helperBinaryOpLTH(binaryOp);
-
-
-            case GTE -> "igte ";
+            case GTE -> helperGTE(binaryOp);
             case ANDB -> helperAndB(binaryOp); // PODE ENTRAR EM LOOP INFINITO
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
@@ -684,9 +690,31 @@ public class JasminGenerator {
     public String generateUnaryOp(UnaryOpInstruction unaryOp){
         var code = new StringBuilder();
         code.append(generators.apply(unaryOp.getOperand()));
-        if(unaryOp.getOperation().getOpType() == OperationType.NOT || unaryOp.getOperation().getOpType() == OperationType.NOTB){
+        //code.append("iconst_1\n");
+        if(unaryOp.getOperation().getOpType() == OperationType.NOT || unaryOp.getOperation().getOpType() == OperationType.NOTB) {
             code.append("ixor\n");
+        }
+        return code.toString();
+    }
 
+
+    private String helperGTE(BinaryOpInstruction binaryOp) {
+        var code = new StringBuilder();
+
+        if(binaryOp.getLeftOperand().isLiteral() && binaryOp.getRightOperand().isLiteral()){
+            code.append("if_icmpge ");
+        }
+        else if(binaryOp.getLeftOperand().isLiteral()){
+            code.append("ifle ");
+            // code.append(generators.apply(binaryOp.getRightOperand()));
+        }
+        else if(binaryOp.getRightOperand().isLiteral()){
+            code.append("ifge ");
+            //code.append(generators.apply(binaryOp.getLeftOperand()));
+        }
+        else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
+            code.append("if_icmpge ");
+            //  code.append(generators.apply(binaryOp.getLeftOperand())).append(generators.apply(binaryOp.getRightOperand()));
         }
 
         return code.toString();
