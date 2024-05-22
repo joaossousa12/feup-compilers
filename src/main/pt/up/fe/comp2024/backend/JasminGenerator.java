@@ -282,7 +282,7 @@ public class JasminGenerator {
 
         code.append(".end method\n");
 
-        String finalCode = code.toString().replace(STACK_PLACEHOLDER, String.valueOf(this.stackNum));
+        String finalCode = code.toString().replace(STACK_PLACEHOLDER, String.valueOf(this.stackNum + (int) Math.floor(this.stackNum / 6.0)));
 
         // unset method
         currentMethod = null;
@@ -362,7 +362,7 @@ public class JasminGenerator {
             return code.append("istore ").append(reg).append(NL).toString();
         }
         else if (elemType == ElementType.OBJECTREF || elemType == ElementType.ARRAYREF || elemType == ElementType.STRING || elemType == ElementType.THIS){
-            this.popStack(-5);
+            this.popStack(1);
             return code.append("astore ").append(reg).append(NL).toString();
         }
         else
