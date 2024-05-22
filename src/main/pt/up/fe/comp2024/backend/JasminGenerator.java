@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.backend;
 
 import org.specs.comp.ollir.*;
 import org.specs.comp.ollir.tree.TreeNode;
+import org.stringtemplate.v4.ST;
 import pt.up.fe.comp.jmm.jasmin.JasminUtils;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
@@ -60,6 +61,7 @@ public class JasminGenerator {
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
+        generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CondBranchInstruction.class, this::generateBranch);
         //generators.put(OpCondInstruction.class, this::generateOpCond);
@@ -685,6 +687,17 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    public String generateUnaryOp(UnaryOpInstruction unaryOp){
+        var code = new StringBuilder();
+        code.append(generators.apply(unaryOp.getOperand()));
+        code.append("iconst_1\n");
+        if(unaryOp.getOperation().getOpType() == OperationType.NOT || unaryOp.getOperation().getOpType() == OperationType.NOTB) {
+            code.append("ixor\n");
+        }
+        return code.toString();
+    }
+
+
     private String helperGTE(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
 
@@ -709,11 +722,9 @@ public class JasminGenerator {
 
     private String helperAndB(BinaryOpInstruction binaryOp){
         var code = new StringBuilder();
+
         code.append("ifne");
         code.append(generators.apply(binaryOp));
-
-
-
 
         return code.toString();
     }
@@ -799,7 +810,7 @@ public class JasminGenerator {
         String label = OpCond.getLabel(); // label penso q é preciso pq debug
 
         if (opType == InstructionType.BINARYOPER) code.append(generateBinaryOp((BinaryOpInstruction) OpCond.getCondition()));
-        else if (opType == InstructionType.UNARYOPER){}
+        else if (opType == InstructionType.UNARYOPER)code.append(generateUnaryOp((UnaryOpInstruction) OpCond.getCondition()));
         else code.append("ifne").append(generators.apply(OpCond.getCondition()));
 
         code.append(label).append("\n");
@@ -807,7 +818,7 @@ public class JasminGenerator {
     }
     private String generateSingleOpCond(SingleOpCondInstruction singleOpCond){
         var code = new StringBuilder();
-        code.append(generators.apply(singleOpCond.getCondition())).append(NL).append("ifne ").append(singleOpCond.getLabel());
+        code.append(generators.apply(singleOpCond.getCondition())).append("ifne ").append(singleOpCond.getLabel());
 
 
         return code.toString();
