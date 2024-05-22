@@ -641,11 +641,19 @@ public class JasminGenerator {
         this.pushStack(1);
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
-        if(operand.getType().getTypeOfElement() == ElementType.INT32 || operand.getType().getTypeOfElement() == ElementType.BOOLEAN)
-            return "iload " + reg + NL;
+        if(operand.getType().getTypeOfElement() == ElementType.INT32 || operand.getType().getTypeOfElement() == ElementType.BOOLEAN){
+            String temp = " ";
+            if(reg < 4)
+                temp = "_";
+            return "iload" + temp + reg + NL;
+        }
 
-        else if(operand.getType().getTypeOfElement() == ElementType.OBJECTREF || operand.getType().getTypeOfElement() == ElementType.ARRAYREF || operand.getType().getTypeOfElement() == ElementType.STRING || operand.getType().getTypeOfElement() == ElementType.CLASS)
-            return "aload " + reg + NL;
+        else if(operand.getType().getTypeOfElement() == ElementType.OBJECTREF || operand.getType().getTypeOfElement() == ElementType.ARRAYREF || operand.getType().getTypeOfElement() == ElementType.STRING || operand.getType().getTypeOfElement() == ElementType.CLASS){
+            String temp = " ";
+            if(reg < 4)
+                temp = "_";
+            return "aload" + temp + reg + NL;
+        }
 
         else if (operand.getType().getTypeOfElement() == ElementType.THIS)
             return "aload_" + reg + NL;
