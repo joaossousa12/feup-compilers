@@ -749,7 +749,7 @@ public class JasminGenerator {
         }
         else if(binaryOp.getRightOperand().isLiteral()){
             this.popStack(2);
-            code.append("iflt "); //if_icmplt
+            code.append("if_icmplt ");
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
             this.popStack(2);
