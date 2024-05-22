@@ -331,7 +331,7 @@ public class JasminGenerator {
                 code.append(generators.apply(((ArrayOperand) l).getIndexOperands().get(0)));
 
                 code.append("iaload ").append(NL);
-                this.popStack(1);
+                this.popStack(0);
                 flag2 = false;
             }
 
@@ -350,7 +350,7 @@ public class JasminGenerator {
         }
 
         if(operand instanceof ArrayOperand){
-            this.popStack(3);
+            this.popStack(0);
             return code.append("iastore").append(NL).toString();
         }
 
@@ -365,7 +365,7 @@ public class JasminGenerator {
             return code.append("istore ").append(reg).append(NL).toString();
         }
         else if (elemType == ElementType.OBJECTREF || elemType == ElementType.ARRAYREF || elemType == ElementType.STRING || elemType == ElementType.THIS){
-            this.popStack(1);
+            this.popStack(0);
             return code.append("astore ").append(reg).append(NL).toString();
         }
         else
@@ -384,7 +384,7 @@ public class JasminGenerator {
         code.append(generators.apply(op3));
 
         code.append("\tputfield ");
-        this.popStack(2);
+        this.popStack(0);
         code.append(getQualifiedImports(ollirResult.getOllirClass().getClassName())).append("/");
         code.append(((Operand) op2).getName()).append(" ").append(getJasminType(op2.getType())).append(NL);
 
@@ -554,7 +554,7 @@ public class JasminGenerator {
                     code.append(generators.apply(argument));
 
                 code.append("newarray int\n");
-                this.pushStack(1);
+                this.pushStack(2);
                 flag = false;
             }
 
@@ -567,7 +567,7 @@ public class JasminGenerator {
             }
 
             if (Objects.equals(callInstruction.getReturnType().getTypeOfElement().name(), "OBJECTREF")){
-                this.pushStack(2); // new and dup
+                this.pushStack(3); // new and dup
                 code.append("new ").append(getQualifiedImports(className)).append(NL).append("dup").append(NL);
             }
 
@@ -707,19 +707,19 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         if(binaryOp.getLeftOperand().isLiteral() && binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
+            this.popStack(0);
             code.append("if_icmpge ");
         }
         else if(binaryOp.getLeftOperand().isLiteral()){
-            this.popStack(1);
+            this.popStack(0);
             code.append("ifle ");
         }
         else if(binaryOp.getRightOperand().isLiteral()){
-            this.popStack(1);
+            this.popStack(0);
             code.append("ifge ");
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
+            this.popStack(0);
             code.append("if_icmpge ");
         }
 
@@ -728,7 +728,7 @@ public class JasminGenerator {
 
     private String helperAndB(BinaryOpInstruction binaryOp){
         var code = new StringBuilder();
-        this.popStack(1);
+        this.popStack(0);
         code.append("ifne");
         code.append(generators.apply(binaryOp));
 
@@ -740,19 +740,19 @@ public class JasminGenerator {
 
 
         if(binaryOp.getLeftOperand().isLiteral() && binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
+            this.popStack(0);
             code.append("if_icmplt ");
         }
         else if(binaryOp.getLeftOperand().isLiteral()){
-            this.popStack(1);
+            this.popStack(0);
             code.append("ifgt ");
         }
         else if(binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
+            this.popStack(0);
             code.append("if_icmplt ");
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
+            this.popStack(0);
             code.append("if_icmplt ");
         }
 
@@ -819,7 +819,7 @@ public class JasminGenerator {
         if (opType == InstructionType.BINARYOPER) code.append(generateBinaryOp((BinaryOpInstruction) OpCond.getCondition()));
         else if (opType == InstructionType.UNARYOPER)code.append(generateUnaryOp((UnaryOpInstruction) OpCond.getCondition()));
         else {
-            this.popStack(1);
+            this.popStack(0);
             code.append("ifne").append(generators.apply(OpCond.getCondition()));
         }
 
@@ -828,7 +828,7 @@ public class JasminGenerator {
     }
     private String generateSingleOpCond(SingleOpCondInstruction singleOpCond){
         var code = new StringBuilder();
-        this.popStack(1);
+        this.popStack(0);
         code.append(generators.apply(singleOpCond.getCondition())).append("ifne ").append(singleOpCond.getLabel());
 
 
