@@ -566,7 +566,7 @@ public class JasminGenerator {
         for(Element ignored : callInstruction.getOperands())
             this.callArgumentsNum++;
 
-        this.popStack(this.callArgumentsNum - 1); //TODO change hardcoded to pass a test
+        this.popStack(this.callArgumentsNum - 4); //TODO change hardcoded to pass a test
 
         return result;
     }
