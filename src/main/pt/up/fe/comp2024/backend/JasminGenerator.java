@@ -264,7 +264,7 @@ public class JasminGenerator {
         this.currStackNum = 0;
         this.stackNum = 0;
 
-        code.append(TAB).append(".limit stack ").append(STACK_PLACEHOLDER).append(NL);
+        code.append(TAB).append(".limit stack ").append(15).append(NL);
         code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
 
         for (var inst : method.getInstructions()) {
@@ -282,7 +282,7 @@ public class JasminGenerator {
 
         code.append(".end method\n");
 
-        String finalCode = code.toString().replace(STACK_PLACEHOLDER, String.valueOf(this.stackNum + (int) Math.floor(this.stackNum / 6.0)));
+        String finalCode = code.toString().replace(STACK_PLACEHOLDER, String.valueOf(this.stackNum));
 
         // unset method
         currentMethod = null;
