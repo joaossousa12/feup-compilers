@@ -696,7 +696,7 @@ public class JasminGenerator {
         code.append(generators.apply(unaryOp.getOperand()));
         code.append("iconst_1\n");
         if(unaryOp.getOperation().getOpType() == OperationType.NOT || unaryOp.getOperation().getOpType() == OperationType.NOTB) {
-            this.popStack(1);
+            this.popStack(0);
             code.append("ixor\n");
         }
         return code.toString();
