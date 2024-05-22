@@ -346,7 +346,7 @@ public class JasminGenerator {
         }
 
         if(operand instanceof ArrayOperand){
-            this.popStack(-10);
+            this.popStack(1);
             return code.append("iastore").append(NL).toString();
         }
 
@@ -362,7 +362,7 @@ public class JasminGenerator {
             return code.append("istore ").append(reg).append(NL).toString();
         }
         else if (elemType == ElementType.OBJECTREF || elemType == ElementType.ARRAYREF || elemType == ElementType.STRING || elemType == ElementType.THIS){
-            this.popStack(1);
+            this.popStack(-5);
             return code.append("astore ").append(reg).append(NL).toString();
         }
         else
