@@ -708,7 +708,7 @@ public class JasminGenerator {
             code.append("ifle ");
         }
         else if(binaryOp.getRightOperand().isLiteral()){
-            code.append("if_icmpge ");
+            code.append("ifge ");
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
             code.append("if_icmpge ");
