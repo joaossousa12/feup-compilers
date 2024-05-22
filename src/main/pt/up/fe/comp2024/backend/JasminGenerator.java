@@ -706,15 +706,12 @@ public class JasminGenerator {
         }
         else if(binaryOp.getLeftOperand().isLiteral()){
             code.append("ifle ");
-            // code.append(generators.apply(binaryOp.getRightOperand()));
         }
         else if(binaryOp.getRightOperand().isLiteral()){
-            code.append("ifge ");
-            //code.append(generators.apply(binaryOp.getLeftOperand()));
+            code.append("if_icmpge ");
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
             code.append("if_icmpge ");
-            //  code.append(generators.apply(binaryOp.getLeftOperand())).append(generators.apply(binaryOp.getRightOperand()));
         }
 
         return code.toString();
@@ -738,15 +735,12 @@ public class JasminGenerator {
         }
         else if(binaryOp.getLeftOperand().isLiteral()){
             code.append("ifgt ");
-           // code.append(generators.apply(binaryOp.getRightOperand()));
         }
         else if(binaryOp.getRightOperand().isLiteral()){
             code.append("if_icmplt ");
-            //code.append(generators.apply(binaryOp.getLeftOperand()));
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
             code.append("if_icmplt ");
-          //  code.append(generators.apply(binaryOp.getLeftOperand())).append(generators.apply(binaryOp.getRightOperand()));
         }
 
 
