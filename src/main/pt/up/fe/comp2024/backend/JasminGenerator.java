@@ -614,11 +614,11 @@ public class JasminGenerator {
         String label = OpCond.getLabel(); // label penso q é preciso pq debug
 
         if (opType instanceof BinaryOpInstruction instruction) generateBinaryOp(instruction);
-        code.append("\n\t").append("ifne ").append(label).append("\n");
+        code.append("\n").append(label).append(":").append("\n");
         return code.toString();
     }
 
-            private String generateGoto(GotoInstruction gotoInstruction){
+    private String generateGoto(GotoInstruction gotoInstruction){
             var code = new StringBuilder();
 
             code.append("goto ").append(gotoInstruction.getLabel()).append("\n");
@@ -629,21 +629,30 @@ public class JasminGenerator {
 
     private String generateBranch(CondBranchInstruction condBranchInstruction){
         var code = new StringBuilder();
-        Instruction instruc = condBranchInstruction.getCondition();
+        Instruction instruc = condBranchInstruction.getCondition(); //condition
         String label = condBranchInstruction.getLabel();
-        InstructionType instType = instruc.getInstType();
+        InstructionType instType = instruc.getInstType(); // Binary or Unary
 
         if(instType == InstructionType.BINARYOPER){
             Element lhs = ((BinaryOpInstruction) instruc).getLeftOperand();
             Element rhs = ((BinaryOpInstruction) instruc).getRightOperand();
 
             OperationType operType = ((BinaryOpInstruction) instruc).getOperation().getOpType();
-
             // 2 tipos ou é LH OU É GTE
-
             if(operType == OperationType.LTH || operType == OperationType.GTE){
                 code.append(lhs.getType().getTypeOfElement());
-                // TO BE CONTINUED NAO MEXAS
+                if(rhs.isLiteral() && ((LiteralElement) rhs).getLiteral().equals("0")){
+                    if(operType == OperationType.LTH) code.append("\tiflt " + label + "\n");
+                    else  code.append("\tifge " + label + "\n");
+            }
+                else{
+                    code.append(rhs.getType().getTypeOfElement());
+                    if(operType == OperationType.LTH) code.append("\tif_icmplt " + label + "\n");
+                    else code.append("\tif_icmpge " + label + "\n");
+                }
+            }
+            else{ // NOPER
+                code.append("\t").append("ifne").append(" ").append(label).append("\n");
             }
 
 
@@ -664,7 +673,7 @@ public class JasminGenerator {
 
         }
 */
-        return "";
+        return code.toString();
     }
 
 }
