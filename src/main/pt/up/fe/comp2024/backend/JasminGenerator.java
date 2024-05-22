@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.backend;
 
 import org.specs.comp.ollir.*;
 import org.specs.comp.ollir.tree.TreeNode;
+import pt.up.fe.comp.jmm.jasmin.JasminUtils;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.specs.util.classmap.FunctionClassMap;
@@ -57,8 +58,9 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
-        generators.put(OpCondInstruction.class, this::generateOpCond);
         generators.put(CondBranchInstruction.class, this::generateBranch);
+        generators.put(OpCondInstruction.class, this::generateOpCond);
+        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
         generators.put(GotoInstruction.class, this::generateGoto);
     }
     public List<Report> getReports() {
@@ -607,17 +609,6 @@ public class JasminGenerator {
         return className;
     }
 
-    private String generateOpCond(OpCondInstruction OpCond) {
-        var code = new StringBuilder();
-
-        OpInstruction opType = OpCond.getCondition();
-        String label = OpCond.getLabel(); // label penso q é preciso pq debug
-
-        if (opType instanceof BinaryOpInstruction instruction) generateBinaryOp(instruction);
-        code.append("\n").append(label).append(":").append("\n");
-        return code.toString();
-    }
-
     private String generateGoto(GotoInstruction gotoInstruction){
             var code = new StringBuilder();
 
@@ -625,8 +616,35 @@ public class JasminGenerator {
 
             return code.toString();
         }
+    private String generateBranch(CondBranchInstruction condBranchInstruction){
+        var code = new StringBuilder();
+        if(condBranchInstruction instanceof OpCondInstruction instruction) generateOpCond(instruction);
+        if(condBranchInstruction instanceof SingleOpCondInstruction instruction) generateSingleOpCond(instruction);
 
 
+        return code.toString();
+    }
+
+    private String generateOpCond(OpCondInstruction OpCond) {
+        var code = new StringBuilder();
+
+        OpInstruction opType = OpCond.getCondition();
+        String label = OpCond.getLabel(); // label penso q é preciso pq debug
+
+        if (opType instanceof BinaryOpInstruction instruction) code.append(generateBinaryOp(instruction));
+        code.append("\n").append(label).append("\n");
+        return code.toString();
+    }
+    private String generateSingleOpCond(SingleOpCondInstruction singleOpCond){
+        var code = new StringBuilder();
+        var cond = singleOpCond.getCondition();
+        var singleOp = cond.getSingleOperand();
+        if (singleOp instanceof ArrayOperand){
+
+        }
+        return code.toString();
+    }
+/*
     private String generateBranch(CondBranchInstruction condBranchInstruction){
         var code = new StringBuilder();
         Instruction instruc = condBranchInstruction.getCondition(); //condition
@@ -672,8 +690,12 @@ public class JasminGenerator {
         } else {
 
         }
-*/
+
+
+
         return code.toString();
     }
+    */
+
 
 }
