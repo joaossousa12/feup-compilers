@@ -83,7 +83,7 @@ public class JasminGenerator {
 
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
-        code.append(".class ").append(className).append(NL);
+        code.append(".class public ").append(className).append(NL);
 
         if (ollirResult.getOllirClass().getSuperClass() != null && !Objects.equals(classUnit.getSuperClass(), "Object")) {
             var superClassName = ollirResult.getOllirClass().getSuperClass();
@@ -101,7 +101,6 @@ public class JasminGenerator {
 
         // generate a single constructor method
         var buildConstructor = """
-                ;default constructor
                 .method public <init>()V
                     aload_0
                 """;
