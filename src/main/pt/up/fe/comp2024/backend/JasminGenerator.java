@@ -62,8 +62,8 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CondBranchInstruction.class, this::generateBranch);
-        generators.put(OpCondInstruction.class, this::generateOpCond);
-        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
+        //generators.put(OpCondInstruction.class, this::generateOpCond);
+        //generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
         generators.put(GotoInstruction.class, this::generateGoto);
     }
     public List<Report> getReports() {
@@ -271,7 +271,7 @@ public class JasminGenerator {
 
         for (var inst : method.getInstructions()) {
             for(Map.Entry<String,Instruction> label : method.getLabels().entrySet()){
-                if(label.getValue().equals(inst)) code.append(TAB).append(label.getKey()).append(":\n");
+                if(label.getValue().equals(inst)) code.append(label.getKey()).append(":\n");
             }
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
@@ -670,6 +670,7 @@ public class JasminGenerator {
 
 
             case GTE -> "igte ";
+            case ANDB -> helperAndB(binaryOp); // PODE ENTRAR EM LOOP INFINITO
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -678,20 +679,37 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String helperAndB(BinaryOpInstruction binaryOp){
+        var code = new StringBuilder();
+        code.append("ifne");
+        code.append(generators.apply(binaryOp));
+
+
+
+
+        return code.toString();
+    }
     private String helperBinaryOpLTH(BinaryOpInstruction binaryOp){
         var code = new StringBuilder();
-        if(binaryOp.getRightOperand().isLiteral()){
-            code.append("iflt ");
-            //code.append(generators.apply(binaryOp.getLeftOperand()));
+
+
+
+        if(binaryOp.getLeftOperand().isLiteral() && binaryOp.getRightOperand().isLiteral()){
+            code.append("if_icmplt ");
         }
-        if(binaryOp.getLeftOperand().isLiteral()){
+        else if(binaryOp.getLeftOperand().isLiteral()){
             code.append("ifgt ");
            // code.append(generators.apply(binaryOp.getRightOperand()));
         }
-        if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
+        else if(binaryOp.getRightOperand().isLiteral()){
+            code.append("iflt ");
+            //code.append(generators.apply(binaryOp.getLeftOperand()));
+        }
+        else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
             code.append("if_icmplt ");
           //  code.append(generators.apply(binaryOp.getLeftOperand())).append(generators.apply(binaryOp.getRightOperand()));
         }
+
 
 
         return code.toString();
@@ -738,8 +756,9 @@ public class JasminGenerator {
         }
     private String generateBranch(CondBranchInstruction condBranchInstruction){
         var code = new StringBuilder();
-        if(condBranchInstruction instanceof OpCondInstruction instruction) generateOpCond(instruction);
-        if(condBranchInstruction instanceof SingleOpCondInstruction instruction) generateSingleOpCond(instruction);
+        if(condBranchInstruction instanceof OpCondInstruction instruction) code.append(generateOpCond(instruction));
+        if(condBranchInstruction instanceof SingleOpCondInstruction instruction) code.append(generateSingleOpCond(instruction));
+
 
 
         return code.toString();
@@ -748,20 +767,21 @@ public class JasminGenerator {
     private String generateOpCond(OpCondInstruction OpCond) {
         var code = new StringBuilder();
 
-        OpInstruction opType = OpCond.getCondition();
+        InstructionType opType = OpCond.getCondition().getInstType();
         String label = OpCond.getLabel(); // label penso q é preciso pq debug
 
-        if (opType instanceof BinaryOpInstruction instruction) code.append(generateBinaryOp(instruction));
+        if (opType == InstructionType.BINARYOPER) code.append(generateBinaryOp((BinaryOpInstruction) OpCond.getCondition()));
+        else if (opType == InstructionType.UNARYOPER){}
+        else code.append("ifne").append(generators.apply(OpCond.getCondition()));
+
         code.append(label).append("\n");
         return code.toString();
     }
     private String generateSingleOpCond(SingleOpCondInstruction singleOpCond){
         var code = new StringBuilder();
-        var cond = singleOpCond.getCondition();
-        var singleOp = cond.getSingleOperand();
-        if (singleOp instanceof ArrayOperand){
+        code.append(generators.apply(singleOpCond.getCondition())).append(NL).append("ifne ").append(singleOpCond.getLabel());
 
-        }
+
         return code.toString();
     }
 /*
