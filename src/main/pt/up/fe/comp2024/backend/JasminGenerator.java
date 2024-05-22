@@ -8,9 +8,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -250,9 +248,16 @@ public class JasminGenerator {
 
        // var insta = method.getInstructions().size() - 1;
 
+        // calculate locals
+        Set<Integer> vRegs = new TreeSet<>();
+
+        vRegs.add(0);
+
+        for(Descriptor var : method.getVarTable().values())
+            vRegs.add(var.getVirtualReg());
 
         code.append(TAB).append(".limit stack 20").append(NL);
-        code.append(TAB).append(".limit locals 20").append(NL);
+        code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
@@ -299,7 +304,11 @@ public class JasminGenerator {
                     code.append("_0").append(NL);
                 else{
                     var reg = currentMethod.getVarTable().get(op.getName()).getVirtualReg();
-                    code.append(" ").append(reg).append(NL);
+                    if(reg < 4)
+                        code.append("_");
+                    else
+                        code.append(" ");
+                    code.append(reg).append(NL);
                 }
                 code.append("iload ").append(this.counter).append(NL);
 
