@@ -143,7 +143,7 @@ public class ArrayAccessOnInt extends AnalysisVisitor{
             array = getActualTypeVarRef(array, currentMethod);
         }
 
-        if(array.getNumChildren() < 1 || !Objects.equals(array.getKind(), "Array")){
+        if((array.getNumChildren() < 1 || !Objects.equals(array.getKind(), "Array")) && !Objects.equals(array.getKind(), "FunctionCall")){
             var message = "Trying to access an integer instead of an array.";
             addReport(Report.newError(
                     Stage.SEMANTIC,

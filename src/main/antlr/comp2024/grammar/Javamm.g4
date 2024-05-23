@@ -111,8 +111,8 @@ stmt
     | LCURLY stmt* RCURLY #StmtScope //
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfElseStmt //
     | WHILE LPAREN expr RPAREN stmt #WhileStmt //
-    | (var= ID | var= LENGTH | var= MAIN) EQUALS expr SEMI #AssignStmt //
-    | (var= ID | var= LENGTH | var= MAIN) LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
+    | ((var= ID | var= LENGTH | var= MAIN) | expr) EQUALS expr SEMI #AssignStmt //
+    | ((var= ID | var= LENGTH | var= MAIN) | expr) LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
     ;
 
 expr
