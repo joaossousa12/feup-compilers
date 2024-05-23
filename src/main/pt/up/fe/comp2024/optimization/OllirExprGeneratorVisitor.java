@@ -101,18 +101,34 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         else if(isStatic) {
             code.append("invokestatic");
             code.append("(");
-            code.append((node.getChild(0).get("name")));
+            if(Objects.equals(node.getChild(0).getKind(), "Paren")){
+                code.append((node.getChild(0).getChild(0).get("name")));
+            }
+            else
+                code.append((node.getChild(0).get("name")));
             code.append(", ");
             code.append("\"" + node.get("name") + "\"");
             for(int i = 1; i < node.getNumChildren(); i++){
+                JmmNode nodeHelp = node;
+                if(Objects.equals(node.getChild(i).getKind(), "Paren"))
+                    nodeHelp = node.getChild(0);
                 code.append(", ");
-                code.append(node.getChild(i).get("name"));
-                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(i))));
+                code.append(nodeHelp.getChild(i).get("name"));
+                code.append(OptUtils.toOllirType(getActualTypeVarRef(nodeHelp.getChild(i))));
             }
-            code.append(visit(node.getChild(1)).getCode());
+            if(Objects.equals(node.getChild(0).getKind(), "Paren")){
+                JmmNode nodeHelp = node.getChild(0);
+
+                while(Objects.equals(nodeHelp.getKind(), "Paren"))
+                    nodeHelp = nodeHelp.getChild(0);
+
+                code.append(visit(nodeHelp).getCode());
+            }
+            else
+                code.append(visit(node.getChild(1)).getCode());
             code.append(")");
             code.append(".V");
-            code.append(END_STMT);
+            //code.append(END_STMT);
             String stringCode = code.toString();
             return new OllirExprResult(stringCode);
         }
