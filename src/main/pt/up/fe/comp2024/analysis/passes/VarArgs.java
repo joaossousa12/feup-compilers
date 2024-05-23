@@ -66,11 +66,20 @@ public class VarArgs extends AnalysisVisitor {
                     while(temp > 0){
                         int currIndex = numParamsBefore - temp;
                         String methodParamType = methodDecl.getChild(currIndex + 1).getChild(0).getKind();
-                        String methodCallArgType = methodCall.getChild(currIndex + 1).getKind();
+                        String methodCallArgType;
+
+                        if(currIndex + 1 < methodCall.getNumChildren()){
+                            methodCallArgType = methodCall.getChild(currIndex + 1).getKind();
+                            if(Objects.equals(methodCallArgType, "VarRefExpr"))
+                                methodCallArgType = getActualTypeVarRef(methodCall.getChild(currIndex + 1)).getKind();
+                        }
+                        else{
+                            methodCallArgType = methodCall.getChild(0).getKind();
+                            if(Objects.equals(methodCallArgType, "VarRefExpr"))
+                                methodCallArgType = getActualTypeVarRef(methodCall.getChild(0)).getKind();
+                        }
 
 
-                        if(Objects.equals(methodCallArgType, "VarRefExpr"))
-                            methodCallArgType = getActualTypeVarRef(methodCall.getChild(currIndex + 1)).getKind();
 
                         switch(methodParamType){
                             case "IntegerType":
@@ -116,13 +125,15 @@ public class VarArgs extends AnalysisVisitor {
                                 else
                                     break;
                             case "Array":
-                                if(!(Objects.equals(methodCallArgType, "Array")))
+                                if(!(Objects.equals(methodCallArgType, "Array")) && !Objects.equals(methodCallArgType, "ArrayInit") && /*TESTE*/ !Objects.equals(methodCallArgType, "FunctionCall") && !Objects.equals(methodCallArgType, "ClassType")){
                                     addReport(Report.newError(
                                             Stage.SEMANTIC,
                                             NodeUtils.getLine(methodDecl),
                                             NodeUtils.getColumn(methodDecl),
                                             "wrong argument ellipsis method",
                                             null));
+                                    return null;
+                                }
                                 else
                                     break;
                             case "ClassType":
@@ -143,13 +154,13 @@ public class VarArgs extends AnalysisVisitor {
                                 break;
                         }
 
-                        if(!Objects.equals(methodCall.getChild(currIndex + 1).getKind(), methodParamType))
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(methodDecl),
-                                    NodeUtils.getColumn(methodDecl),
-                                    "wrong argument ellipsis method",
-                                    null));
+//                        if(!Objects.equals(methodCall.getChild(currIndex + 1).getKind(), methodParamType))
+//                            addReport(Report.newError(
+//                                    Stage.SEMANTIC,
+//                                    NodeUtils.getLine(methodDecl),
+//                                    NodeUtils.getColumn(methodDecl),
+//                                    "wrong argument ellipsis method",
+//                                    null));
                         temp--;
                     }
 
