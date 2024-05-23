@@ -5,7 +5,7 @@ public class OllirExprResult {
     public static final OllirExprResult EMPTY = new OllirExprResult("", "");
 
     private final String computation;
-    private final String code;
+    private  String code; //falta o final antes da string
 
     public OllirExprResult(String code, String computation) {
         this.code = code;
@@ -24,6 +24,9 @@ public class OllirExprResult {
         return computation;
     }
 
+    public void setCode(String code){
+        this.code = code;
+    }
     public String getCode() {
         return code;
     }

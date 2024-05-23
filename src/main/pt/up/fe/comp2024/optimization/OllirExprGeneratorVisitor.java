@@ -153,6 +153,15 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         var lhs = visit(node.getJmmChild(0));
+        if(node.getChild(0).getKind().equals("BooleanLiteral")){
+            if(lhs.getCode().equals("true.bool") ){
+                lhs.setCode("1.bool");
+
+            }
+            else{
+                lhs.setCode("0.bool");
+            }
+        }
         var rhs = visit(node.getJmmChild(1));
 
         if(Objects.equals(node.getChild(1).getKind(), "FunctionCall")){

@@ -112,7 +112,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(rhs.getComputation());
 
         if(Objects.equals(node.getChild(0).getKind(), "NewClass"))
-            code.append("invokespecial(").append(rhs.getCode()).append(", \"\").V;\n");
+            code.append("invokespecial(").append(rhs.getCode()).append(", \"<init>\").V;\n");
 
         if(Objects.equals(node.getChild(0).getKind(), "NewClass"))
             code.append(aux);
@@ -267,6 +267,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             else if(Objects.equals(returnStmt.getChild(0).getKind(),"VarRefExpr")){
                 code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(".array.i32").append(";").append(NL);
             }
+            else if(Objects.equals(returnStmt.getChild(0).getKind(),"BooleanLiteral")) {
+                String returnValue = returnStmt.getChild(0).get("value");
+                if(returnValue.equals("true")){
+                    returnValue = "1";
+                }
+                else{
+                    returnValue = "0";
+                }
+                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnValue).append(".bool").append(";").append(NL);
+            }
+
             else
                 code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
         }
