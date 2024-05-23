@@ -39,6 +39,9 @@ public class OptUtils {
         if(Objects.equals(typeNode.getKind(),"Array")){
             return ".array.i32";
         }
+        if(Objects.equals(typeNode.getKind(),"IntegerLiteral")){
+            return ".i32";
+        }
         String typeName = typeNode.get("name");
 
         String isArray = Objects.equals(typeNode.getKind(), "Array") ? ".array" : "";
@@ -53,6 +56,9 @@ public class OptUtils {
 
         if (typeName.equals("int") || typeName.equals("boolean") || typeName.equals("String") || typeName.equals("void"))
             return (type.isArray() ? ".array" : "") + toOllirType(typeName);
+
+        else if(typeName.equals("true")||typeName.equals("false"))
+            return toOllirType("boolean");
 
         else
             return (type.isArray() ? ".array" : "") + "." + typeName;

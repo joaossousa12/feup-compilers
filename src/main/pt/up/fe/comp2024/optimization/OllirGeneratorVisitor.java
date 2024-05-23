@@ -46,22 +46,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit("returnStmt", this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit("ExprStmt",this::visitExprStmt);
-        addVisit("NewArray", this::visitArray);
-
+       // addVisit("NewArray", this::visitArray);
 
         setDefaultVisit(this::defaultVisit);
     }
 
-    private String visitArray(JmmNode node,Void unused){
-        StringBuilder code = new StringBuilder();
 
-        visit(node.getJmmChild(0));
-       // code.append("\t\tt" + "0" + ".array.i32 :=.array.i32 new(array, " + node.getJmmChild(0).get("valueOl") +").array.i32;\n");
-
-
-
-        return code.toString();
-    }
 
     private String visitExprStmt(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
@@ -72,8 +62,16 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append("\"" + node.getChild(0).get("name") + "\"");
         for(int i = 1; i < node.getChild(0).getNumChildren(); i++){
             code.append(", ");
-            code.append(node.getChild(0).getChild(i).get("name"));
-            code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
+            if(node.getChild(0).getChild(i).getKind().equals("IntegerLiteral") ){
+                code.append(node.getChild(0).getChild(i).get("value"));
+                code.append(OptUtils.toOllirType(node.getChild(0).getChild(i)));
+            }
+            else{
+                code.append(node.getChild(0).getChild(i).get("name"));
+                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
+
+
+            }
         }
         code.append(")");
         code.append(".V");
@@ -145,9 +143,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if(Objects.equals(rhs.getCode(), "") && Objects.equals(node.getChild(0).getKind(), "NewArray")) {
             code.append("new(").append("array, "+ node.getChild(0).getChild(0).get("value")).append(".i32").append(")").append(typeString);
         }
+        if(Objects.equals(rhs.getCode(), "") && Objects.equals(node.getChild(0).getKind(), "Negation")) {
+            code.append("!.bool").append(" "+ node.getChild(0).getChild(0).get("value")).append(typeString);
+        }
 
 
-        code.append(END_STMT);
+            code.append(END_STMT);
 
         return code.toString();
     }
