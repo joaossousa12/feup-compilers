@@ -54,11 +54,13 @@ public class TypeUtils {
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case NEW_CLASS -> new Type(expr.get("name"), false);
             case FUNCTION_CALL -> getFuncCallType(expr);
+            case NEW_ARRAY -> new Type(expr.getChild(0).getKind(),true);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 
         return type;
     }
+
 
     private static Type getBinExprType(JmmNode binaryExpr) {
         // TODO: Simple implementation that needs to be expanded

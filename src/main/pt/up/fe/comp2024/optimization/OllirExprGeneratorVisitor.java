@@ -40,6 +40,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         setDefaultVisit(this::defaultVisit);
     }
 
+
     private OllirExprResult visitFCall(JmmNode node,Void unused){
         // static a esquerda do ponto é o nome de uma class se n for estatico é virtual
         // varrefexpr

@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.CondBranchInstruction;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
@@ -45,8 +46,21 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit("returnStmt", this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit("ExprStmt",this::visitExprStmt);
+        addVisit("NewArray", this::visitArray);
+
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String visitArray(JmmNode node,Void unused){
+        StringBuilder code = new StringBuilder();
+
+        visit(node.getJmmChild(0));
+       // code.append("\t\tt" + "0" + ".array.i32 :=.array.i32 new(array, " + node.getJmmChild(0).get("valueOl") +").array.i32;\n");
+
+
+
+        return code.toString();
     }
 
     private String visitExprStmt(JmmNode node, Void unused){
@@ -108,6 +122,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         if(typeString.equals(".IntegerType"))
             typeString = ".i32";
+        if(typeString.equals(".array.IntegerLiteral")) typeString = "array.i32";
 
         if(Objects.equals(node.getChild(0).getKind(), "BinaryOp")){
             for (int i = 0; i < table.getLocalVariables(methodName).size(); i++) {
@@ -244,6 +259,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 Type retType = TypeUtils.getExprType(returnStmt.getChild(0), table);
                 code.append(OptUtils.toOllirType(retType)).append(" ");
                 code.append(rhs.getCode()).append(";\n");
+            }
+            else if(Objects.equals(returnStmt.getChild(0).getKind(),"VarRefExpr")){
+                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(".array.i32").append(";").append(NL);
             }
             else
                 code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);

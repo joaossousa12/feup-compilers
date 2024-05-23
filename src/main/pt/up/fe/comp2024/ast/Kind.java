@@ -25,7 +25,7 @@ public enum Kind {
 
     NEW_CLASS,
 
-
+    NEW_ARRAY,
     VOID,
     INTEGER,
     BOOLEAN,
