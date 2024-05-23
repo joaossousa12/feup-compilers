@@ -55,9 +55,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitExprStmt(JmmNode node, Void unused){
-
-        boolean c = true;
-
         StringBuilder code = new StringBuilder();
 
         if(node.getChild(0).getNumChildren()>1) {
@@ -67,7 +64,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 var a = node.getParent().getChild(0).get("name");
                 code.append(type).append(ASSIGN).append(".i32 ").append("arraylength(").append(a).append(".array.i32).i32").append(";");
                 code.append("\n");
-                c = true;
             }
         }
 
@@ -83,7 +79,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                     code.append(node.getChild(0).getChild(i).get("value"));
                     code.append(OptUtils.toOllirType(node.getChild(0).getChild(i)));
                 }
-                if (node.getChild(0).getChild(i).getKind().equals("Length")) {
+                else if (node.getChild(0).getChild(i).getKind().equals("Length")) {
                     String resOllirType = OptUtils.toOllirType(node.getChild(0).getChild(1));
                     String type = OptUtils.getTemp() + resOllirType;
                     code.append(type);
@@ -95,11 +91,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 }
             }
 
-        if(c){
             code.append(")");
             code.append(".V");
             code.append(END_STMT);
-        }
 
 
         return code.toString();
