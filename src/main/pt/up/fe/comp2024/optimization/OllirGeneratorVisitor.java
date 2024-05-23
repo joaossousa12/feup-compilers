@@ -88,7 +88,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             }
             else if(node.getChild(0).getChild(i).getKind().equals("BinaryOp")) {
                 String typ = getBinaryOpType(node.getChild(0).getChild(i));
-                code.append("tmp").append(this.counter-1).append(typ);
+                code.append("tmp").append(this.counter-1+this.helper).append(typ);
             }
             else if (node.getChild(0).getChild(i).getKind().equals("Length")) {
                 String resOllirType = OptUtils.toOllirType(node.getChild(0).getChild(1));
@@ -132,35 +132,70 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         }
 
         if(help.getParent().getChild(1).getKind().equals("BinaryOp") && help.getParent().getChild(0).getKind().equals("BinaryOp")){
-            code.append("tmp5.i32 :=.i32 2.i32 *.i32 3.i32;\n");
-            this.counter++;
-            code.append("tmp6.i32 :=.i32 1.i32 +.i32 tmp5.i32;\n");
-            this.counter++;
-            code.append("tmp7.i32 :=.i32 6.i32 /.i32 3.i32;\n");
-            this.counter++;
-            code.append("tmp8.i32 :=.i32 tmp6.i32 +.i32 tmp7.i32;\n");
-            this.counter++;
+            //explore left first
+            JmmNode left = binaryOp.getChild(0);
+            while(left.getChild(1).getKind().equals("BinaryOp") || left.getChild(0).getKind().equals("BinaryOp")){
+                if(left.getChild(1).getKind().equals("BinaryOp"))
+                    left = left.getChild(1);
+                else if(left.getChild(0).getKind().equals("BinaryOp"))
+                    left = left.getChild(0);
+            }
+
+
+            //explore right
+            JmmNode right = binaryOp.getChild(1);
+            while(right.getChild(1).getKind().equals("BinaryOp") || right.getChild(0).getKind().equals("BinaryOp")){
+                if(right.getChild(1).getKind().equals("BinaryOp"))
+                    right = right.getChild(1);
+                else if(right.getChild(0).getKind().equals("BinaryOp"))
+                    right = right.getChild(0);
+            }
+
+            code.append(helper(left));
+            code.append(helper(right));
+
+
+            String op = binaryOp.getChild(0).get("op");
+            String type = getBinaryOpType(help);
+
+            code.append(OptUtils.getTemp()).append(type).append(" ");
+            code.append(ASSIGN).append(type).append(" ");
+            code.append("tmp").append(this.counter-2).append(type).append(" ");
+            code.append(op).append(type).append(" ").append("tmp").append(this.counter-1);
+            code.append(type).append(END_STMT);
+
+            this.helper = 1;
         }
         else {
-            while (help.getParent().getKind().equals("BinaryOp") || help.getKind().equals("BinaryOp")) {
-
-                String op = help.get("op");
-                String type = getBinaryOpType(help);
-
-                String left = help.getChild(0).getKind().equals("BinaryOp") ? "tmp" + (this.counter - 1) : help.getChild(0).get("value");
-
-                code.append(OptUtils.getTemp()).append(type).append(" ");
-                code.append(ASSIGN).append(type).append(" ");
-                code.append(left).append(type).append(" ");
-                String right = help.getChild(1).getKind().equals("BinaryOp") ? "tmp" + (this.counter - 1) : help.getChild(1).get("value");
-                code.append(op).append(type).append(" ").append(right).append(type).append(END_STMT);
-
-                this.counter++;
-
-                help = help.getParent();
-            }
+            this.helper = 0;
+            code.append(helper(help));
         }
 
+        return code.toString();
+    }
+
+    private String helper(JmmNode help){
+        StringBuilder code = new StringBuilder();
+        while (help.getParent().getKind().equals("BinaryOp") || help.getKind().equals("BinaryOp")) {
+
+            if(help.getChild(0).getKind().equals("BinaryOp") && help.getChild(1).getKind().equals("BinaryOp"))
+                break;
+
+            String op = help.get("op");
+            String type = getBinaryOpType(help);
+
+            String left = help.getChild(0).getKind().equals("BinaryOp") ? "tmp" + (this.counter - 1) : help.getChild(0).get("value");
+            String right = help.getChild(1).getKind().equals("BinaryOp") ? "tmp" + (this.counter - 1) : help.getChild(1).get("value");
+
+            code.append(OptUtils.getTemp()).append(type).append(" ");
+            code.append(ASSIGN).append(type).append(" ");
+            code.append(left).append(type).append(" ");
+            code.append(op).append(type).append(" ").append(right).append(type).append(END_STMT);
+
+            this.counter++;
+
+            help = help.getParent();
+        }
         return code.toString();
     }
 
