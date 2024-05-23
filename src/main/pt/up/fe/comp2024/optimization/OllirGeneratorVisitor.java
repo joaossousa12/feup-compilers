@@ -55,28 +55,52 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitExprStmt(JmmNode node, Void unused){
+
+        boolean c = true;
+
         StringBuilder code = new StringBuilder();
-        code.append("invokestatic");
-        code.append("(");
-        code.append((node.getChild(0).getChild(0).get("name")));
-        code.append(", ");
-        code.append("\"" + node.getChild(0).get("name") + "\"");
-        for(int i = 1; i < node.getChild(0).getNumChildren(); i++){
-            code.append(", ");
-            if(node.getChild(0).getChild(i).getKind().equals("IntegerLiteral") ){
-                code.append(node.getChild(0).getChild(i).get("value"));
-                code.append(OptUtils.toOllirType(node.getChild(0).getChild(i)));
-            }
-            else{
-                code.append(node.getChild(0).getChild(i).get("name"));
-                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
 
-
+        if(node.getChild(0).getNumChildren()>1) {
+            if (node.getChild(0).getChild(1).getKind().equals("Length")) {
+                String resOllirType = OptUtils.toOllirType(node.getChild(0).getChild(1));
+                String type = OptUtils.getTemp() + resOllirType;
+                var a = node.getParent().getChild(0).get("name");
+                code.append(type).append(ASSIGN).append(".i32 ").append("arraylength(").append(a).append(".array.i32).i32").append(";");
+                code.append("\n");
+                c = true;
             }
         }
-        code.append(")");
-        code.append(".V");
-        code.append(END_STMT);
+
+
+            code.append("invokestatic");
+            code.append("(");
+            code.append((node.getChild(0).getChild(0).get("name")));
+            code.append(", ");
+            code.append("\"" + node.getChild(0).get("name") + "\"");
+            for (int i = 1; i < node.getChild(0).getNumChildren(); i++) {
+                code.append(", ");
+                if (node.getChild(0).getChild(i).getKind().equals("IntegerLiteral")) {
+                    code.append(node.getChild(0).getChild(i).get("value"));
+                    code.append(OptUtils.toOllirType(node.getChild(0).getChild(i)));
+                }
+                if (node.getChild(0).getChild(i).getKind().equals("Length")) {
+                    String resOllirType = OptUtils.toOllirType(node.getChild(0).getChild(1));
+                    String type = OptUtils.getTemp() + resOllirType;
+                    code.append(type);
+                } else {
+                    code.append(node.getChild(0).getChild(i).get("name"));
+                    code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
+
+
+                }
+            }
+
+        if(c){
+            code.append(")");
+            code.append(".V");
+            code.append(END_STMT);
+        }
+
 
         return code.toString();
 
@@ -297,6 +321,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                     returnValue = "0";
                 }
                 code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnValue).append(".bool").append(";").append(NL);
+            }
+            else if(Objects.equals(returnStmt.getChild(0).getKind(),"ArrayAccess")) {
+                code.append("ret");
             }
 
             else

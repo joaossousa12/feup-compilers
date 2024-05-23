@@ -56,6 +56,7 @@ public class TypeUtils {
             case FUNCTION_CALL -> getFuncCallType(expr);
             case NEW_ARRAY -> new Type(expr.getChild(0).getKind(),true);
             case NEGATION -> new Type(expr.getChild(0).get("value"),false);
+            case ARRAY_INIT -> new Type(expr.getChild(0).getKind(),true);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 

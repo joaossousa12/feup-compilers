@@ -29,6 +29,7 @@ public enum Kind {
     NEGATION,
     VOID,
     INTEGER,
+    ARRAY_INIT,
     BOOLEAN,
     IMPORT_DECL,
     VAR_REF_EXPR;
