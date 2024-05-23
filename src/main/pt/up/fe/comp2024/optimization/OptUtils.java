@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.optimization;
 
 import org.specs.comp.ollir.Instruction;
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.Kind;
@@ -88,6 +89,18 @@ public class OptUtils {
 
 
         return ret;
+    }
+
+    public static boolean checkIfInImports(String name, SymbolTable table){
+        boolean inImports = false;
+        for(String imprt : table.getImports()){
+            String[] elements = imprt.substring(1, imprt.length() - 1).split(", ");
+            String lastElement = elements[elements.length - 1];
+            if(Objects.equals(lastElement, name))
+                inImports = true;
+        }
+
+        return inImports;
     }
 
 

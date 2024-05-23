@@ -58,7 +58,47 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         StringBuilder code = new StringBuilder();
 
-        if(isStatic) {
+        String name = null;
+        if(left.hasAttribute("name"))
+            name = left.get("name");
+
+        if(isStatic && name != null && OptUtils.checkIfInImports(name, table)){
+            code.append("invokestatic");
+            code.append("(");
+            code.append((node.getChild(0).get("name")));
+            code.append(", ");
+            code.append("\"" + node.get("name") + "\"");
+            for(int i = 1; i < node.getNumChildren(); i++){
+                code.append(", ");
+                code.append(node.getChild(i).get("name"));
+                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(i))));
+            }
+            if(node.getNumChildren() > 2)
+                code.append(visit(node.getChild(1)).getCode());
+            code.append(")");
+            String varName = node.getParent().get("var"); // assume type of variable
+
+            JmmNode methodNode = node;
+            JmmNode n = methodNode;
+            while(!Objects.equals(methodNode.getKind(), "MethodDecl")){
+                if(Objects.equals(n.getKind(), "MethodDecl"))
+                    methodNode = n;
+                else
+                    n = n.getParent();
+            }
+            JmmNode type = null;
+            for(JmmNode l : methodNode.getDescendants()){
+                if(l.getKind().equals("VarDecl") && l.get("name").equals(varName)){
+                    type = l.getChild(0);
+                    break;
+                }
+            }
+            code.append(OptUtils.toOllirType(type));
+            code.append(END_STMT);
+            String stringCode = code.toString();
+            return new OllirExprResult(stringCode);
+        }
+        else if(isStatic) {
             code.append("invokestatic");
             code.append("(");
             code.append((node.getChild(0).get("name")));

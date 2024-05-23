@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import static pt.up.fe.comp2024.ast.Kind.*;
 
@@ -75,11 +76,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitAssignStmt(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
         String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+        Type type10 = null;
         for (int i = 0; i < table.getLocalVariables(methodName).size(); i++) {
             if(!Objects.equals(node.getChild(0).getKind(), "BinaryOp")) {
                 if (table.getLocalVariables(methodName).get(i).getName().equals(node.get("var"))) {
                     code.append(table.getLocalVariables(methodName).get(i).getName());
                     code.append(OptUtils.toOllirType(table.getLocalVariables(methodName).get(i).getType()));
+                    type10 = table.getLocalVariables(methodName).get(i).getType();
                 }
             }
         }
@@ -87,21 +90,38 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder aux = new StringBuilder();
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 
-        if(Objects.equals(node.getChild(0).getKind(), "NewClass")){
+
+
+        if(Objects.equals(node.getChild(0).getKind(), "NewClass") && !OptUtils.checkIfInImports(node.getChild(0).get("name"),table)){
             aux = code;
             code = new StringBuilder();
             String resOllirType = OptUtils.toOllirType(node.getChild(0));
             String type = OptUtils.getTemp() + resOllirType;
             rhs = new OllirExprResult(type, type + " :=" + resOllirType + " new(" + table.getClassName() + ")" + resOllirType + ";\n");
+        } else if(Objects.equals(node.getChild(0).getKind(), "NewClass") && OptUtils.checkIfInImports(node.getChild(0).get("name"),table)){
+            aux = code;
+            code = new StringBuilder();
+            String resOllirType = OptUtils.toOllirType(node.getChild(0));
+            rhs = new OllirExprResult(aux.toString(), aux.toString() + " :=" + resOllirType + " new(" + node.getChild(0).get("name") + ")" + resOllirType + ";\n");
         }
 
         code.append(rhs.getComputation());
 
-        if(Objects.equals(node.getChild(0).getKind(), "NewClass"))
-            code.append("invokespecial(").append(rhs.getCode()).append(", \"\").V;\n");
+        if(Objects.equals(node.getChild(0).getKind(), "NewClass") && !OptUtils.checkIfInImports(node.getChild(0).get("name"),table))
+            code.append("invokespecial(").append(rhs.getCode()).append(", \"<init>\").V;\n");
+        else if(Objects.equals(node.getChild(0).getKind(), "NewClass") && OptUtils.checkIfInImports(node.getChild(0).get("name"),table)) {
+            code.append("invokespecial(").append(rhs.getCode()).append(", \"<init>\").V;\n");
+            return code.toString();
+        }
 
         if(Objects.equals(node.getChild(0).getKind(), "NewClass"))
             code.append(aux);
+
+        if(node.getJmmChild(0).getKind().equals("FunctionCall")){
+            OllirExprResult ollirExprResult = exprVisitor.visit(node.getJmmChild(0));
+            code.append(" :=").append(OptUtils.toOllirType(type10)).append(" ").append(ollirExprResult.getCode()).append(END_STMT);
+            return code.toString();
+        }
 
         Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
         String typeString = OptUtils.toOllirType(thisType);
@@ -231,7 +251,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         }
 
         if(params.isEmpty() && Objects.equals(node.get("name"), "main"))
-            code.append("ret.V ;").append(NL);
+            code.append("ret.V;").append(NL);
 
         else{
             JmmNode returnStmt = node.getChild(node.getNumChildren() - 1);
@@ -329,9 +349,22 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
+        //code.append(helpImports()).append(NL);
+
         node.getChildren().stream()
                 .map(this::visit)
                 .forEach(code::append);
+
+        return code.toString();
+    }
+
+    private String helpImports(){
+        StringBuilder code = new StringBuilder();
+
+        for(String imprt : table.getImports()) {
+            int a = 1;
+            code.append("import ").append(imprt).append(";").append(NL);
+        }
 
         return code.toString();
     }
