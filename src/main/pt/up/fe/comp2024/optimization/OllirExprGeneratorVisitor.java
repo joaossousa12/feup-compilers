@@ -40,6 +40,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         setDefaultVisit(this::defaultVisit);
     }
 
+
     private OllirExprResult visitFCall(JmmNode node,Void unused){
         // static a esquerda do ponto é o nome de uma class se n for estatico é virtual
         // varrefexpr
@@ -151,8 +152,20 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             code.append("\"" + node.get("name") + "\"");
             for(int i = 1; i < node.getNumChildren(); i++){
                 code.append(", ");
-                code.append(node.getChild(i).get("name"));
-                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(i))));
+                if(node.getChild(i).getKind().equals("IntegerLiteral")){
+                    code.append(node.getChild(i).get("value"));
+                }
+                else{
+                    code.append(node.getChild(i).get("name"));
+
+                }
+                if(node.getChild(i).getKind().equals("IntegerLiteral")){
+                    code.append(".i32");
+                }
+                else{
+                    code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(i))));
+
+                }
             }
             code.append(")");
 
@@ -196,6 +209,15 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         var lhs = visit(node.getJmmChild(0));
+        if(node.getChild(0).getKind().equals("BooleanLiteral")){
+            if(lhs.getCode().equals("true.bool") ){
+                lhs.setCode("1.bool");
+
+            }
+            else{
+                lhs.setCode("0.bool");
+            }
+        }
         var rhs = visit(node.getJmmChild(1));
 
         if(Objects.equals(node.getChild(1).getKind(), "FunctionCall")){

@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.CondBranchInstruction;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
@@ -46,9 +47,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit("returnStmt", this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit("ExprStmt",this::visitExprStmt);
+       // addVisit("NewArray", this::visitArray);
 
         setDefaultVisit(this::defaultVisit);
     }
+
+
 
     private String visitExprStmt(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
@@ -59,8 +63,16 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append("\"" + node.getChild(0).get("name") + "\"");
         for(int i = 1; i < node.getChild(0).getNumChildren(); i++){
             code.append(", ");
-            code.append(node.getChild(0).getChild(i).get("name"));
-            code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
+            if(node.getChild(0).getChild(i).getKind().equals("IntegerLiteral") ){
+                code.append(node.getChild(0).getChild(i).get("value"));
+                code.append(OptUtils.toOllirType(node.getChild(0).getChild(i)));
+            }
+            else{
+                code.append(node.getChild(0).getChild(i).get("name"));
+                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
+
+
+            }
         }
         code.append(")");
         code.append(".V");
@@ -128,6 +140,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         if(typeString.equals(".IntegerType"))
             typeString = ".i32";
+        if(typeString.equals(".array.IntegerLiteral")) typeString = ".array.i32";
 
         if(Objects.equals(node.getChild(0).getKind(), "BinaryOp")){
             for (int i = 0; i < table.getLocalVariables(methodName).size(); i++) {
@@ -147,6 +160,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if(Objects.equals(rhs.getCode(), "") && Objects.equals(node.getChild(0).getKind(), "NewClass")){
             code.append("new(").append(node.getChild(0).get("name")).append(")").append(typeString);
         }
+        if(Objects.equals(rhs.getCode(), "") && Objects.equals(node.getChild(0).getKind(), "NewArray")) {
+            code.append("new(").append("array, "+ node.getChild(0).getChild(0).get("value")).append(".i32").append(")").append(typeString);
+        }
+        if(Objects.equals(rhs.getCode(), "") && Objects.equals(node.getChild(0).getKind(), "Negation")) {
+            code.append("!.bool").append(" "+ node.getChild(0).getChild(0).get("value")).append(typeString);
+        }
+
 
         code.append(END_STMT);
 
@@ -265,6 +285,20 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 code.append(OptUtils.toOllirType(retType)).append(" ");
                 code.append(rhs.getCode()).append(";\n");
             }
+            else if(Objects.equals(returnStmt.getChild(0).getKind(),"VarRefExpr")){
+                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(".array.i32").append(";").append(NL);
+            }
+            else if(Objects.equals(returnStmt.getChild(0).getKind(),"BooleanLiteral")) {
+                String returnValue = returnStmt.getChild(0).get("value");
+                if(returnValue.equals("true")){
+                    returnValue = "1";
+                }
+                else{
+                    returnValue = "0";
+                }
+                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnValue).append(".bool").append(";").append(NL);
+            }
+
             else
                 code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
         }
