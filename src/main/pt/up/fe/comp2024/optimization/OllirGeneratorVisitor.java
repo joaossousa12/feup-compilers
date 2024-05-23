@@ -265,8 +265,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 code.append(OptUtils.toOllirType(retType)).append(" ");
                 code.append(rhs.getCode()).append(";\n");
             }
-            else
-                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
+            else{
+                if(Objects.equals(returnStmt.getChild(0).getKind(), "BooleanLiteral")){
+                    code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("value")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
+                } else
+                    code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(OptUtils.toOllirType(returnStmt.getChild(0))).append(";").append(NL);
+            }
         }
 
         code.append(R_BRACKET);

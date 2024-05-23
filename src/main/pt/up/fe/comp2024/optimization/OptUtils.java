@@ -37,7 +37,12 @@ public class OptUtils {
         if(Objects.equals(typeNode.getKind(), "VarRefExpr"))
             typeNode = getActualTypeVarRef(typeNode);
 
-        String typeName = typeNode.get("name");
+        String typeName;
+
+        if(Objects.equals(typeNode.getKind(), "BooleanLiteral"))
+            typeName = typeNode.get("value");
+        else
+            typeName = typeNode.get("name");
 
         String isArray = Objects.equals(typeNode.getKind(), "Array") ? ".array" : "";
 
