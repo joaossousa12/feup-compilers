@@ -43,6 +43,10 @@ public class OptUtils {
         if(Objects.equals(typeNode.getKind(),"IntegerLiteral")){
             return ".i32";
         }
+        if(Objects.equals(typeNode.getKind(),"Length")){
+            return ".i32";
+        }
+
         String typeName = typeNode.get("name");
 
         String isArray = Objects.equals(typeNode.getKind(), "Array") ? ".array" : "";
