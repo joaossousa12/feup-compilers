@@ -42,7 +42,7 @@ public class LengthHandle extends AnalysisVisitor{
         else if(Objects.equals(left.getKind(), "FunctionCall"))
             left = getActualTypeFunctionCall(left);
 
-        if(!(Objects.equals(left.getKind(), "ArrayInit") || Objects.equals(left.getKind(), "Array")))
+        if(!Objects.equals(left.getKind(), "ArrayInit") && !Objects.equals(left.getKind(), "Array") && !Objects.equals(left.getKind(), "EllipsisType"))
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(left),
