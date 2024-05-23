@@ -122,7 +122,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         if(typeString.equals(".IntegerType"))
             typeString = ".i32";
-        if(typeString.equals(".array.IntegerLiteral")) typeString = "array.i32";
+        if(typeString.equals(".array.IntegerLiteral")) typeString = ".array.i32";
 
         if(Objects.equals(node.getChild(0).getKind(), "BinaryOp")){
             for (int i = 0; i < table.getLocalVariables(methodName).size(); i++) {
@@ -142,6 +142,10 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if(Objects.equals(rhs.getCode(), "") && Objects.equals(node.getChild(0).getKind(), "NewClass")){
             code.append("new(").append(node.getChild(0).get("name")).append(")").append(typeString);
         }
+        if(Objects.equals(rhs.getCode(), "") && Objects.equals(node.getChild(0).getKind(), "NewArray")) {
+            code.append("new(").append("array, "+ node.getChild(0).getChild(0).get("value")).append(".i32").append(")").append(typeString);
+        }
+
 
         code.append(END_STMT);
 

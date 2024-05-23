@@ -96,8 +96,20 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             code.append("\"" + node.get("name") + "\"");
             for(int i = 1; i < node.getNumChildren(); i++){
                 code.append(", ");
-                code.append(node.getChild(i).get("name"));
-                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(i))));
+                if(node.getChild(i).getKind().equals("IntegerLiteral")){
+                    code.append(node.getChild(i).get("value"));
+                }
+                else{
+                    code.append(node.getChild(i).get("name"));
+
+                }
+                if(node.getChild(i).getKind().equals("IntegerLiteral")){
+                    code.append(".i32");
+                }
+                else{
+                    code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(i))));
+
+                }
             }
             code.append(")");
 
