@@ -24,6 +24,7 @@ public enum Kind {
     STRING_LITERAL,
 
     NEW_CLASS,
+    ARRAY_ACCESS,
 
     NEW_ARRAY,
     NEGATION,

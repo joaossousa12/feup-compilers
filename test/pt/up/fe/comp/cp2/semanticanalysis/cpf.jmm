@@ -1,0 +1,12 @@
+class NoIdOnLeftSideOfAssign {
+
+    int[] foo() {
+        int[] a;
+        return a;
+    }
+
+    int bar() {
+        this.foo()[0] = 10;
+        return 0;
+    }
+}

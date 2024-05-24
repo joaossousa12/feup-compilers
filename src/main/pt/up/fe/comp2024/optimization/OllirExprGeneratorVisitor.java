@@ -36,6 +36,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit("BinaryOp", this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(ARRAY_ACCESS, this::visitArrayAccess);
         //addVisit("NewClass", this::visitNewClass);
 
         setDefaultVisit(this::defaultVisit);
@@ -204,6 +205,23 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String ollirIntType = OptUtils.toOllirType(intType);
         String code = node.get("value") + ollirIntType;
         return new OllirExprResult(code);
+    }
+
+    private OllirExprResult visitArrayAccess(JmmNode node, Void unused) {
+        var code = "";
+        var computation = "";
+
+        String type = ".i32"; // hardcoded but correct because indexs/results of arrays on j-- are always integers
+
+        code += "$1.";
+        code += node.getChild(0).get("name");
+        code += "[";
+        code += node.getChild(1).get("value");
+        code += type;
+        code += "]";
+        code += type;
+
+        return new OllirExprResult(code, computation);
     }
 
 
