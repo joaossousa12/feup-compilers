@@ -281,7 +281,7 @@ public class JasminGenerator {
         for(String part: parts){
             if(part.startsWith("iconst") || part.startsWith("bipush") || part.startsWith("ldc") || part.startsWith("sipush"))
                 stacks++;
-            else if(part.startsWith("istore") || part.startsWith("astore"))
+            else if(part.startsWith("istore") || part.startsWith("astore") || part.startsWith("iaload"))
                 stacks--;
             else if(part.startsWith("iload") || part.startsWith("aload") || part.startsWith("dup"))
                 stacks++;
@@ -297,6 +297,8 @@ public class JasminGenerator {
                 stacks++;
             else if(part.equals("pop"))
                 stacks--;
+            else if(part.equals("iastore"))
+                stacks -=2;
         }
         stacks += this.invokes;
 
