@@ -371,23 +371,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         int a = 1;
 
-        if(code.toString().equals("tmp0.bool :=.bool invokevirtual(c.Arithmetic_and, \"p\", 1.i32).bool;\n" +
-                "a.bool :=.bool 1.bool &&.bool tmp0.bool;\n")){
-
-            code = new StringBuilder();
-            code.append("""
-                    c.Arithmetic_and :=.Arithmetic_and tmp0.Arithmetic_and;
-                          if(1.bool) goto true_0;
-                          tmp1.bool :=.bool 0.bool;
-                          goto end_0;
-                          true_0:
-                          tmp2.bool :=.bool invokevirtual(c.Arithmetic_and, "p", 1.i32).bool;
-                          tmp1.bool :=.bool tmp2.bool;
-                          end_0:
-                          a.bool :=.bool tmp1.bool;""");
-        }
-
-
         return code.toString();
     }
 
