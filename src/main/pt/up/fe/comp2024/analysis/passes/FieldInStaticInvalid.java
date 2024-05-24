@@ -15,6 +15,7 @@ import pt.up.fe.specs.util.SpecsCheck;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class FieldInStaticInvalid extends  AnalysisVisitor{
     private String currentMethod;
@@ -37,9 +38,22 @@ public class FieldInStaticInvalid extends  AnalysisVisitor{
             for (Symbol symbol : fields) {
                 fieldNames.add(symbol.getName());
             }
+
+            List<String> localNames = new ArrayList<>();
+            for(JmmNode node : methodDecl.getDescendants()){
+                if(node.getKind().equals("VarDecl"))
+                    localNames.add(node.get("name"));
+
+            }
+
+
+
+
+
+
             for(JmmNode node : methodDecl.getDescendants()){
                 if(Objects.equals(node.getKind(), "VarRefExpr")){
-                    if(fieldNames.contains(node.get("name")))
+                    if(fieldNames.contains(node.get("name")) && !localNames.contains(node.get("name")))
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
                                 NodeUtils.getLine(methodDecl),
@@ -60,7 +74,7 @@ public class FieldInStaticInvalid extends  AnalysisVisitor{
                     }
                 }
                 else if(Objects.equals(node.getKind(), "AssignStmt")){
-                    if(fieldNames.contains(node.get("var")))
+                    if(fieldNames.contains(node.get("var")) && !localNames.contains(node.get("var")))
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
                                 NodeUtils.getLine(methodDecl),
@@ -71,7 +85,7 @@ public class FieldInStaticInvalid extends  AnalysisVisitor{
                     else{
                         for(JmmNode assignDescendant : node.getDescendants()){
                             if(Objects.equals(assignDescendant.getKind(), "VarRefExpr")){
-                                if(fieldNames.contains(assignDescendant.get("name")))
+                                if(fieldNames.contains(assignDescendant.get("name")) && !localNames.contains(node.get("var")))
                                     addReport(Report.newError(
                                             Stage.SEMANTIC,
                                             NodeUtils.getLine(methodDecl),
