@@ -24,17 +24,12 @@ public class JasminGenerator {
 
     private final OllirResult ollirResult;
 
-    int stack_size;
-    int current_stack_size;
     List<Report> reports;
 
     String code;
 
     Method currentMethod;
 
-    int stackNum;
-    int currStackNum;
-    int callArgumentsNum;
     int invokes = 0;
 
     Field field;
@@ -215,7 +210,6 @@ public class JasminGenerator {
 
     private String generateMethod(Method method) {
 
-        this.resetStack();
         // set method
         currentMethod = method;
 
@@ -256,8 +250,6 @@ public class JasminGenerator {
         for(Descriptor var : method.getVarTable().values())
             vRegs.add(var.getVirtualReg());
 
-        this.currStackNum = 0;
-        this.stackNum = 0;
 
         code.append(TAB).append(".limit stack ").append(STACK_PLACEHOLDER).append(NL);
         code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
@@ -275,7 +267,6 @@ public class JasminGenerator {
 
             if (inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID) {
                 code.append(TAB).append("pop").append(NL);
-                this.currStackNum--;
 
             }
         }
@@ -304,6 +295,8 @@ public class JasminGenerator {
                 stacks--;
             else if(part.equals("new"))
                 stacks++;
+            else if(part.equals("pop"))
+                stacks--;
         }
         stacks += this.invokes;
 
@@ -321,7 +314,6 @@ public class JasminGenerator {
         String extracode = "";
         if(assign.getDest() instanceof ArrayOperand op){
             code.append("aload");
-            this.pushStack(1);
 
             if(Objects.equals(op.getName(), "this"))
                 code.append("_0").append(NL);
@@ -344,7 +336,6 @@ public class JasminGenerator {
 
             if(l instanceof ArrayOperand op){ //Array Access
                 code.append("aload");
-                this.pushStack(1);
 
                 if(Objects.equals(op.getName(), "this"))
                     code.append("_0").append(NL);
@@ -360,7 +351,6 @@ public class JasminGenerator {
                 code.append(generators.apply(((ArrayOperand) l).getIndexOperands().get(0)));
 
                 code.append("iaload ").append(NL);
-                this.popStack(1);
                 flag2 = false;
             }
 
@@ -379,7 +369,6 @@ public class JasminGenerator {
         }
 
         if(operand instanceof ArrayOperand){
-            this.popStack(3);
             return code.append("iastore").append(NL).toString();
         }
 
@@ -390,7 +379,6 @@ public class JasminGenerator {
         ElementType elemType = operand.getType().getTypeOfElement();
 
         if(elemType == ElementType.INT32 || elemType == ElementType.BOOLEAN){
-            //this.pushStack(1);
             if(reg < 4)
                 code.append("istore_");
             else
@@ -398,7 +386,6 @@ public class JasminGenerator {
             return code.append(reg).append(NL).toString();
         }
         else if (elemType == ElementType.OBJECTREF || elemType == ElementType.ARRAYREF || elemType == ElementType.STRING || elemType == ElementType.THIS){
-            this.popStack(1);
             if(reg < 4)
                 code.append("astore").append("_");
             else
@@ -421,7 +408,6 @@ public class JasminGenerator {
         code.append(generators.apply(op3));
 
         code.append("\tputfield ");
-        this.popStack(2);
         code.append(getQualifiedImports(ollirResult.getOllirClass().getClassName())).append("/");
         code.append(((Operand) op2).getName()).append(" ").append(getJasminType(op2.getType())).append(NL);
 
@@ -447,7 +433,6 @@ public class JasminGenerator {
 
 
     private String generateCall(CallInstruction callInstruction){
-        this.callArgumentsNum = 0;
         CallType type = callInstruction.getInvocationType();
         boolean flag = true;
         String result = "";
@@ -455,21 +440,12 @@ public class JasminGenerator {
         if (type == CallType.invokevirtual) {
             var className = getQualifiedImports(((ClassType) callInstruction.getCaller().getType()).getName());
             var code = new StringBuilder();
-            this.callArgumentsNum = 0;
             code.append(generators.apply(callInstruction.getOperands().get(0)));
-
-            if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
-                this.callArgumentsNum--;
 
             if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
                this.invokes++;
 
-            for(Element ignored : callInstruction.getOperands())
-                this.callArgumentsNum++;
-
-            for(int i = 0; i < callInstruction.getArguments().size(); i++){
-                this.invokes--;
-            }
+            this.invokes = - callInstruction.getArguments().size();
 
             for (var argument : callInstruction.getArguments())
                 code.append(generators.apply(argument));
@@ -500,20 +476,10 @@ public class JasminGenerator {
             var code = new StringBuilder();
             String className;
 
-            this.callArgumentsNum = 1; // not sure
-
-            if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
-                this.callArgumentsNum--;
-
-            for(Element ignored : callInstruction.getOperands())
-                this.callArgumentsNum++;
-
             if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
                 this.invokes++;
 
-            for(int i = 0; i < callInstruction.getArguments().size(); i++){
-                this.invokes--;
-            }
+            this.invokes = - callInstruction.getArguments().size();
 
             if (callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS)
                 className = ((ClassType) callInstruction.getCaller().getType()).getName();
@@ -548,21 +514,12 @@ public class JasminGenerator {
         }
 
         else if (type == CallType.invokestatic) {
-            this.callArgumentsNum = 0;
             var code = new StringBuilder();
-
-            if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
-                this.callArgumentsNum--;
-
-            for(Element ignored : callInstruction.getOperands())
-                this.callArgumentsNum++;
 
             if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
                 this.invokes++;
 
-            for(int i = 0; i < callInstruction.getArguments().size(); i++){
-                this.invokes--;
-            }
+            this.invokes = - callInstruction.getArguments().size();
 
             String className;
 
@@ -602,7 +559,6 @@ public class JasminGenerator {
         else if (type == CallType.NEW) {
             var code = new StringBuilder();
             String className = "";
-            this.callArgumentsNum = 0;
 
             if (callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS)
                 className = ((ClassType) callInstruction.getCaller().getType()).getName();
@@ -612,7 +568,6 @@ public class JasminGenerator {
                     code.append(generators.apply(argument));
 
                 code.append("newarray int\n");
-                this.pushStack(1);
                 flag = false;
             }
 
@@ -625,7 +580,6 @@ public class JasminGenerator {
             }
 
             if (Objects.equals(callInstruction.getReturnType().getTypeOfElement().name(), "OBJECTREF")){
-                this.pushStack(2); // new and dup
                 code.append("new ").append(getQualifiedImports(className)).append(NL).append("dup").append(NL);
             }
 
@@ -692,7 +646,6 @@ public class JasminGenerator {
             code.append(NL);
 
         }
-        this.pushStack(1);
         return code.toString();
     }
 
@@ -703,7 +656,6 @@ public class JasminGenerator {
             String temp = " ";
             if(reg < 4)
                 temp = "_";
-            this.pushStack(1);
             return "iload" + temp + reg + NL;
         }
 
@@ -711,12 +663,10 @@ public class JasminGenerator {
             String temp = " ";
             if(reg < 4)
                 temp = "_";
-            this.pushStack(1);
             return "aload" + temp + reg + NL;
         }
 
         else if (operand.getType().getTypeOfElement() == ElementType.THIS){
-            //this.pushStack(1);
             return "aload_" + reg + NL;
         }
 
@@ -742,9 +692,6 @@ public class JasminGenerator {
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
-        if(binaryOp.getOperation().getOpType() == OperationType.ADD || binaryOp.getOperation().getOpType() == OperationType.MUL || binaryOp.getOperation().getOpType() == OperationType.DIV || binaryOp.getOperation().getOpType() == OperationType.SUB)
-            this.popStack(2);
-
         code.append(op);
         return code.toString();
     }
@@ -754,7 +701,6 @@ public class JasminGenerator {
         code.append(generators.apply(unaryOp.getOperand()));
         code.append("iconst_1\n");
         if(unaryOp.getOperation().getOpType() == OperationType.NOT || unaryOp.getOperation().getOpType() == OperationType.NOTB) {
-            this.popStack(1);
             code.append("ixor\n");
         }
         return code.toString();
@@ -765,19 +711,15 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         if(binaryOp.getLeftOperand().isLiteral() && binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
             code.append("if_icmpge ");
         }
         else if(binaryOp.getLeftOperand().isLiteral()){
-            this.popStack(1);
             code.append("ifle ");
         }
         else if(binaryOp.getRightOperand().isLiteral()){
-            this.popStack(1);
             code.append("ifge ");
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
             code.append("if_icmpge ");
         }
 
@@ -786,7 +728,6 @@ public class JasminGenerator {
 
     private String helperAndB(BinaryOpInstruction binaryOp){
         var code = new StringBuilder();
-        this.popStack(1);
         code.append("ifne");
         code.append(generators.apply(binaryOp));
 
@@ -798,19 +739,15 @@ public class JasminGenerator {
 
 
         if(binaryOp.getLeftOperand().isLiteral() && binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
             code.append("if_icmplt ");
         }
         else if(binaryOp.getLeftOperand().isLiteral()){
-            this.popStack(1);
             code.append("ifgt ");
         }
         else if(binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
             code.append("if_icmplt ");
         }
         else if(!binaryOp.getLeftOperand().isLiteral() && !binaryOp.getRightOperand().isLiteral()){
-            this.popStack(2);
             code.append("if_icmplt ");
         }
 
@@ -877,7 +814,6 @@ public class JasminGenerator {
         if (opType == InstructionType.BINARYOPER) code.append(generateBinaryOp((BinaryOpInstruction) OpCond.getCondition()));
         else if (opType == InstructionType.UNARYOPER)code.append(generateUnaryOp((UnaryOpInstruction) OpCond.getCondition()));
         else {
-            this.popStack(1);
             code.append("ifne").append(generators.apply(OpCond.getCondition()));
         }
 
@@ -886,26 +822,10 @@ public class JasminGenerator {
     }
     private String generateSingleOpCond(SingleOpCondInstruction singleOpCond){
         var code = new StringBuilder();
-        this.popStack(1);
         code.append(generators.apply(singleOpCond.getCondition())).append("ifne ").append(singleOpCond.getLabel());
 
 
         return code.toString();
-    }
-
-    private void popStack(int amount){
-        this.currStackNum -= amount;
-    }
-
-    private void pushStack(int amount){
-        this.currStackNum += amount;
-
-        this.stackNum = Math.max(this.currStackNum, this.stackNum);
-    }
-
-    private void resetStack(){
-        this.currStackNum = 0;
-        this.stackNum = 0;
     }
 
 }
