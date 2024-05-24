@@ -108,7 +108,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
         StringBuilder arrayAccessCode = new StringBuilder();
         StringBuilder funcCallCode = new StringBuilder();
-        StringBuilder helperCode = new StringBuilder();
 
         boolean isStatic = node.getParent().hasAttribute("isStatic") && node.getParent().get("isStatic").equals("true");
 
