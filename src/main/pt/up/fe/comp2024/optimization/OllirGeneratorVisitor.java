@@ -403,7 +403,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 code.append(rhs.getCode()).append(";\n");
             }
             else if(Objects.equals(returnStmt.getChild(0).getKind(),"VarRefExpr")){
-                code.append("ret").append(OptUtils.toOllirType(node.getChild(0).getChild(0))).append(" ").append(returnStmt.getChild(0).get("name")).append(".array.i32").append(";").append(NL);
+                String type = OptUtils.toOllirType(node.getChild(0).getChild(0));
+                code.append("ret").append(type).append(" ").append(returnStmt.getChild(0).get("name")).append(type).append(";").append(NL);
             }
             else if(Objects.equals(returnStmt.getChild(0).getKind(),"BooleanLiteral")) {
                 String returnValue = returnStmt.getChild(0).get("value");
