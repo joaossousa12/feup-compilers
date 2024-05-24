@@ -251,7 +251,7 @@ public class JasminGenerator {
             vRegs.add(var.getVirtualReg());
 
 
-        code.append(TAB).append(".limit stack ").append(STACK_PLACEHOLDER).append(NL);
+        code.append(TAB).append(".limit stack ").append(20).append(NL);
         code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
 
         this.invokes = 0;
