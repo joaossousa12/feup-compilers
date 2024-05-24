@@ -295,8 +295,8 @@ public class JasminGenerator {
                 stacks--;
             else if(part.equals("new"))
                 stacks++;
-            else if(part.equals("pop"))
-                stacks--;
+//            else if(part.equals("pop"))
+//                stacks--;
         }
         stacks += this.invokes;
 
