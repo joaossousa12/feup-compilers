@@ -30,6 +30,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private final OllirExprGeneratorVisitor exprVisitor;
     private int counter = 0;
     private int helper = 0;
+    private int labelNum = 0;
 
     public OllirGeneratorVisitor(SymbolTable table) {
         this.table = table;
@@ -369,7 +370,45 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if(t)
             code.append(END_STMT);
 
-        int a = 1;
+        if(node.getChild(0).getKind().equals("BinaryOp") && node.getChild(0).get("op").equals("&&")){
+            code = new StringBuilder();
+            code.append("c.Arithmetic_and :=.Arithmetic_and c.Arithmetic_and").append(END_STMT);
+            code.append("if(");
+
+            if(node.getChild(0).getChild(0).getKind().equals("BooleanLiteral")){
+                if(node.getChild(0).getChild(0).get("value").equals("true"))
+                    code.append("1.bool");
+                else
+                    code.append("0.bool");
+            } else {
+                code.append(node.getChild(0).getChild(0).getKind());
+            }
+
+            code.append(") goto ");
+            code.append("true_").append(this.labelNum).append(END_STMT);
+            code.append(OptUtils.getTemp()).append(".bool ");
+
+            this.counter++;
+            code.append(ASSIGN).append(".bool 0.bool").append(END_STMT);
+
+            code.append("goto end_").append(this.labelNum).append(END_STMT);
+            code.append("true_").append(this.labelNum).append(":").append(NL);
+
+            rhs = exprVisitor.visit(node.getJmmChild(0));
+            code.append(rhs.getComputation());
+            this.counter++;
+
+            code.append("tmp").append(this.counter-1).append(".bool ").append(ASSIGN).append(".bool tmp").append(this.counter).append(".bool").append(END_STMT);
+
+
+            code.append("end_").append(this.labelNum).append(":").append(NL);
+
+            code.append(node.get("var")).append(".bool");
+
+            code.append(" ").append(ASSIGN).append(".bool ").append("tmp").append(this.counter - 1).append(".bool").append(END_STMT);
+
+            this.labelNum++;
+        }
 
         return code.toString();
     }
