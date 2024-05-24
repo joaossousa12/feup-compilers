@@ -55,88 +55,38 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
 
-    private String visitIfElse(JmmNode node, Void unused){
-        var aux = 0;
-        var ifcounter = OptUtils.getIfCount();
+    private String visitIfElse(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
-        var temp = OptUtils.getTemp();
-        code.append(temp).append(".bool").append(ASSIGN).append(".bool ");
-        //lhs
-        code.append(node.getChild(0).getChild(0).get("value")).append(".i32 ");
-        //operator
-        code.append(node.getChild(0).get("op")).append(".bool ");
-        //rhs
-        code.append(node.getChild(0).getChild(1).get("value")).append(".i32;").append("\n");
 
-        code.append("if (").append(temp).append(".bool) ").append("goto ").append(ifcounter + ";");
+        JmmNode binOpExpr = node.getChild(0);
+        JmmNode first_child = node.getChild(1);
+        JmmNode sec_child = node.getChild(2);
+
+        var assigns = exprVisitor.visit(binOpExpr); // sacar os .bools e assigns todos (a expressao basicamente)
+
+        code.append(assigns.getComputation()); //debug
+        code.append("if(");
+        code.append(assigns.getCode());
+        code.append(") goto ");
+        code.append(OptUtils.getIfCount());
+        code.append(END_STMT); // fim do inicio da avaliação dos ifs (debug)
+
+        for (var fields : sec_child.getChildren()) { // correr
+            code.append(visit(fields));
+        }
+        code.append("goto ").append("end" + OptUtils.getIfCount()).append(";\n");
+
+        // Run the true body if condition evaluate to true
+        code.append(OptUtils.getIfCount() + ":");
         code.append(NL);
 
-        code.append(SPACE + "invokestatic");
-        code.append("(");
-        code.append((node.getChild(2).getChild(0).getChild(0).getChild(0).get("name")));
-        code.append(", ");
-        code.append("\"" + node.getChild(2).getChild(0).getChild(0).get("name") + "\"");
-        for (int i = 1; i < node.getChild(0).getNumChildren(); i++) {
-            code.append(", ");
-            if (node.getChild(0).getChild(i).getKind().equals("IntegerLiteral")) {
-                code.append(node.getChild(0).getChild(i).get("value"));
-                code.append(OptUtils.toOllirType(node.getChild(0).getChild(i)));
-            }
-            else if (node.getChild(0).getChild(i).getKind().equals("Length")) {
-                String resOllirType = OptUtils.toOllirType(node.getChild(0).getChild(1));
-                String type = OptUtils.getTemp() + resOllirType;
-                code.append(type);
-            } else {
-                code.append(node.getChild(0).getChild(i).get("name"));
-                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
-
-
-            }
+        for (var i : first_child.getChildren()) {
+            code.append(visit(i));
         }
 
-        code.append(")");
-        code.append(".V");
-        code.append(END_STMT);
+        code.append("end" + OptUtils.getIfCount() + ":");
+        code.append(NL);
 
-        code.append("goto end").append(ifcounter + ";" + "\n");
-        code.append(ifcounter + ":" + NL);
-
-        code.append(SPACE+"invokestatic");
-        code.append("(");
-        code.append((node.getChild(1).getChild(0).getChild(0).getChild(0).get("name")));
-        code.append(", ");
-        code.append("\"" + node.getChild(1).getChild(0).getChild(0).get("name") + "\"");
-        for (int i = 1; i < node.getChild(0).getNumChildren(); i++) {
-            code.append(", ");
-            if (node.getChild(0).getChild(i).getKind().equals("IntegerLiteral")) {
-                code.append(node.getChild(0).getChild(0).get("value"));
-                code.append(OptUtils.toOllirType(node.getChild(0).getChild(i)));
-            }
-            else if (node.getChild(0).getChild(i).getKind().equals("Length")) {
-                String resOllirType = OptUtils.toOllirType(node.getChild(0).getChild(1));
-                String type = OptUtils.getTemp() + resOllirType;
-                code.append(type);
-            } else {
-                code.append(node.getChild(0).getChild(i).get("name"));
-                code.append(OptUtils.toOllirType(getActualTypeVarRef(node.getChild(0).getChild(i))));
-
-
-            }
-        }
-
-        code.append(")");
-        code.append(".V");
-        code.append(END_STMT);
-        code.append("end").append(ifcounter + ":" + "\n");
-
-
-
-
-
-
-
-
-        code.append("\n");
         return code.toString();
     }
 
