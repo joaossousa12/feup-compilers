@@ -49,12 +49,50 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit("ExprStmt",this::visitExprStmt);
         addVisit("IfElseStmt",this::visitIfElse);
+        addVisit("WhileStmt", this::visitWhile);
        // addVisit("NewArray", this::visitArray);
 
         setDefaultVisit(this::defaultVisit);
     }
 
+    private String visitWhile(JmmNode node, Void unused) {
 
+        StringBuilder code = new StringBuilder();
+
+        JmmNode binOpExpr = node.getChild(0);
+        JmmNode dentroWhile = node.getChild(1);
+
+        var assigns = exprVisitor.visit(binOpExpr);
+
+        code.append(assigns.getComputation());
+        //same que o if basicamente so q com o while assigns
+        code.append("if(");
+        code.append(assigns.getCode());
+        code.append(") goto " + OptUtils.getWhileCount());
+        code.append(END_STMT);
+        code.append(NL);
+
+
+        code.append("goto ").append("end").append(OptUtils.getWhileCount());
+        code.append(END_STMT);
+        code.append(NL);
+
+        code.append(OptUtils.getWhileCount() + ":"); // hard coded disto tudo ?
+        code.append(NL);
+
+        for (var aux : dentroWhile.getChildren()) { // ver o que esta no while code dentro { }
+            code.append(visit(aux));
+        }
+        code.append("if(");
+        code.append(assigns.getCode());
+        code.append(") goto " + OptUtils.getWhileCount());
+        code.append(END_STMT);
+        code.append(NL);
+        code.append("end" + OptUtils.getWhileCount() + ":");
+        code.append(NL);
+
+        return code.toString();
+    }
     private String visitIfElse(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
 
@@ -67,16 +105,18 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(assigns.getComputation()); //debug
         code.append("if(");
         code.append(assigns.getCode());
-        code.append(") goto ");
+        code.append(") ");
+        code.append("goto ");
         code.append(OptUtils.getIfCount());
         code.append(END_STMT); // fim do inicio da avaliação dos ifs (debug)
 
         for (var fields : sec_child.getChildren()) { // correr
             code.append(visit(fields));
         }
-        code.append("goto ").append("end" + OptUtils.getIfCount()).append(";\n");
+        code.append("goto ").append("end" + OptUtils.getIfCount());
+        code.append(END_STMT);
+        code.append(NL);
 
-        // Run the true body if condition evaluate to true
         code.append(OptUtils.getIfCount() + ":");
         code.append(NL);
 
