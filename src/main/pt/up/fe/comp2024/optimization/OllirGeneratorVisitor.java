@@ -1,12 +1,9 @@
 package pt.up.fe.comp2024.optimization;
 
-import org.specs.comp.ollir.CondBranchInstruction;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-import pt.up.fe.comp.jmm.ollir.OllirUtils;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
@@ -63,69 +60,46 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
 
         JmmNode binOpExpr = node.getChild(0);
-        JmmNode dentroWhile = node.getChild(1);
 
         var assigns = exprVisitor.visit(binOpExpr);
         code.append(assigns.getComputation());
-        //same que o if basicamente so q com o while assigns
-        code.append("if(");
-        code.append(assigns.getCode());
-        code.append(") goto " + OptUtils.getWhileCount());
-        code.append(END_STMT);
-        code.append(NL);
-        code.append("goto ").append("end").append(OptUtils.getWhileCount());
-        code.append(END_STMT);
-        code.append(NL);
-        code.append(OptUtils.getWhileCount() + ":"); // hard coded disto tudo ?
-        code.append(NL);
 
-        for (var aux : dentroWhile.getChildren()) { // ver o que esta no while code dentro { }
+        //same que o if basicamente so q com o while assigns
+        code.append("if(").append(assigns.getCode()).append(") goto ").append(OptUtils.getWhile()).append(END_STMT).append(NL);
+
+        code.append("goto ").append("end").append(OptUtils.getWhile()).append(END_STMT).append(NL);
+
+        code.append(OptUtils.getWhile()).append(":").append(NL); // hard coded disto tudo ?
+
+        for (var aux : node.getChild(1).getChildren())  // ver o que esta no nested while
             code.append(visit(aux));
-        }
-        code.append("if(");
-        code.append(assigns.getCode());
-        code.append(") goto " + OptUtils.getWhileCount());
-        code.append(END_STMT);
-        code.append(NL);
-        code.append("end" + OptUtils.getWhileCount() + ":");
-        code.append(NL);
+
+
+        code.append("if(").append(assigns.getCode()).append(") goto ").append(OptUtils.getWhile()).append(END_STMT).append(NL);
+        code.append("end").append(OptUtils.getWhile()).append(":").append(NL);
 
         return code.toString();
     }
     private String visitIfElse(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
 
-        JmmNode binOpExpr = node.getChild(0);
-        JmmNode first_child = node.getChild(1);
-        JmmNode sec_child = node.getChild(2);
+        var assigns = exprVisitor.visit(node.getChild(0)); // sacar os .bools e assigns todos (a expressao basicamente)
+        code.append(assigns.getComputation()).append("if(");
 
-        var assigns = exprVisitor.visit(binOpExpr); // sacar os .bools e assigns todos (a expressao basicamente)
-        code.append(assigns.getComputation()); //debug
-        code.append("if(");
-        if(assigns.getCode().equals("a.i32")){
+        if(assigns.getCode().equals("a.i32"))
             assigns.setCode("a.bool");
-        }
-        code.append(assigns.getCode());
-        code.append(") ");
-        code.append("goto ");
-        code.append(OptUtils.getIfCount());
-        code.append(END_STMT); // fim do inicio da avaliação dos ifs (debug)
 
-        for (var fields : sec_child.getChildren()) { // correr
+        code.append(assigns.getCode()).append(") goto ").append(OptUtils.getIf()).append(END_STMT); // fim do inicio da avaliação dos ifs (debug)
+
+        for (var fields : node.getChild(2).getChildren()) // correr
             code.append(visit(fields));
-        }
-        code.append("goto ").append("end" + OptUtils.getIfCount());
-        code.append(END_STMT);
-        code.append(NL);
-        code.append(OptUtils.getIfCount() + ":");
-        code.append(NL);
 
-        for (var i : first_child.getChildren()) {
+        code.append("goto ").append("end" + OptUtils.getIf()).append(END_STMT).append(NL).append(OptUtils.getIf()).append(":").append(NL);
+
+        for (var i : node.getChild(1).getChildren())
             code.append(visit(i));
-        }
 
-        code.append("end" + OptUtils.getIfCount() + ":");
-        code.append(NL);
+        code.append("end").append(OptUtils.getIf()).append(":").append(NL);
 
         return code.toString();
     }

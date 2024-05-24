@@ -17,18 +17,16 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 public class OptUtils {
     private static int tempNumber = -1;
     private static int ifNumber = 0;
-    private static int whileN = 0;
+    private static int whileNumber = 0;
 
 
 
-    public static String getIfCount() {
-        ifNumber += 1;
-        return "if" + ifNumber;
+    public static String getIf() {
+        return "if" + ifNumber++;
     }
 
-    public static String getWhileCount() {
-        whileN += 1;
-        return "while" + whileN;
+    public static String getWhile() {
+        return "while" + whileNumber++;
     }
 
     public static String getTemp() {
