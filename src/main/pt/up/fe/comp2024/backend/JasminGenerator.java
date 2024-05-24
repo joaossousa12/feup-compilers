@@ -297,8 +297,8 @@ public class JasminGenerator {
                 stacks++;
             else if(part.equals("pop"))
                 stacks--;
-            else if(part.equals("iastore"))
-                stacks -=2;
+//            else if(part.equals("iastore"))
+//                stacks -=2;
         }
         stacks += this.invokes;
 
