@@ -445,7 +445,7 @@ public class JasminGenerator {
             if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
                this.invokes++;
 
-            this.invokes = - callInstruction.getArguments().size();
+            this.invokes -= callInstruction.getArguments().size();
 
             for (var argument : callInstruction.getArguments())
                 code.append(generators.apply(argument));
@@ -479,7 +479,7 @@ public class JasminGenerator {
             if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
                 this.invokes++;
 
-            this.invokes = - callInstruction.getArguments().size();
+            this.invokes -= callInstruction.getArguments().size();
 
             if (callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS)
                 className = ((ClassType) callInstruction.getCaller().getType()).getName();
@@ -519,7 +519,7 @@ public class JasminGenerator {
             if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
                 this.invokes++;
 
-            this.invokes = - callInstruction.getArguments().size();
+            this.invokes -= callInstruction.getArguments().size();
 
             String className;
 
