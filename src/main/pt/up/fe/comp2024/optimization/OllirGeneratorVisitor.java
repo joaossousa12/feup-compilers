@@ -58,6 +58,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitExprStmt(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
+        StringBuilder arrayAccessCode = new StringBuilder();
+
+        boolean isStatic = node.getParent().hasAttribute("isStatic") && node.getParent().get("isStatic").equals("true");
 
         if(node.getChild(0).getNumChildren()>1) {
             if (node.getChild(0).getChild(1).getKind().equals("Length")) {
@@ -93,8 +96,83 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             else if (node.getChild(0).getChild(i).getKind().equals("Length")) {
                 String resOllirType = OptUtils.toOllirType(node.getChild(0).getChild(1));
                 String type = OptUtils.getTemp() + resOllirType;
+                this.counter++;
                 code.append(type);
-            } else {
+            } else if(node.getChild(0).getChild(i).getKind().equals("ArrayAccess")) {
+                boolean createdAtLeastOneTemp = false;
+                if(node.getChild(0).getChild(i).getChild(1).getKind().equals("FunctionCall")) {
+                    arrayAccessCode.append(OptUtils.getTemp()).append(".i32 ").append(ASSIGN).append(".i32 ");
+                    this.counter++;
+
+                    if(isStatic){
+                        arrayAccessCode.append("invokevirtual(").append(node.getChild(0).getChild(i).getChild(1).getChild(0).get("name"));
+                        JmmNode typeNode = node.getChild(0).getChild(i).getChild(1).getChild(0);
+                        if(typeNode.getKind().equals("VarRefExpr"))
+                            typeNode = getActualTypeVarRef(typeNode);
+                        arrayAccessCode.append(OptUtils.toOllirType(typeNode)).append(", ");
+                        arrayAccessCode.append("\"");
+                        arrayAccessCode.append(node.getChild(0).getChild(i).getChild(1).get("name")).append("\"");
+                        JmmNode func = node.getChild(0).getChild(i).getChild(1);
+                        for(int k = 1; k < func.getNumChildren(); k++){
+                            arrayAccessCode.append(", ");
+                            if(func.getChild(k).getKind().equals("IntegerLiteral")){
+                                arrayAccessCode.append(func.getChild(k).get("value"));
+                            }
+                            else{
+                                arrayAccessCode.append(func.getChild(k).get("name"));
+
+                            }
+                            if(func.getChild(k).getKind().equals("IntegerLiteral")){
+                                arrayAccessCode.append(".i32");
+                            }
+                            else{
+                                arrayAccessCode.append(OptUtils.toOllirType(getActualTypeVarRef(func.getChild(k))));
+
+                            }
+                            arrayAccessCode.append(").i32").append(END_STMT);
+                            createdAtLeastOneTemp = true;
+                        }
+                    } else if(node.getChild(0).getChild(1).getChild(1).getKind().equals("BinaryOp")){
+                        int a = 1;
+                    }
+
+                } else if(node.getChild(0).getChild(1).getChild(1).getKind().equals("BinaryOp")) {
+                    arrayAccessCode.append(NL);
+                    arrayAccessCode.append(OptUtils.getTemp()).append(".i32 ").append(ASSIGN);
+                    this.counter++;
+                    if(node.getChild(0).getChild(1).getChild(1).getChild(0).hasAttribute("value"))
+                        arrayAccessCode.append(".i32 ").append(node.getChild(0).getChild(1).getChild(1).getChild(0).get("value"));
+                    else
+                        arrayAccessCode.append(".i32 ").append("tmp").append(this.counter-1);
+                    arrayAccessCode.append(".i32 ").append(node.getChild(0).getChild(1).getChild(1).get("op")).append(".i32 ");
+                    arrayAccessCode.append(node.getChild(0).getChild(1).getChild(1).getChild(1).get("value")).append(".i32").append(END_STMT);
+                } else if(node.getChild(0).getChild(1).getChild(1).getKind().equals("ArrayAccess")){ //arrayaccess
+                    arrayAccessCode.append(NL);
+                    arrayAccessCode.append(OptUtils.getTemp()).append(".i32 ").append(ASSIGN).append(".i32 ");
+                    this.counter++;
+                    arrayAccessCode.append(node.getChild(0).getChild(1).getChild(0).get("name"));
+                    arrayAccessCode.append("[");
+                    arrayAccessCode.append(node.getChild(0).getChild(1).getChild(1).getChild(1).get("value")).append(".i32");
+                    arrayAccessCode.append("].i32");
+                    arrayAccessCode.append(END_STMT);
+                }
+                arrayAccessCode.append(OptUtils.getTemp()).append(".i32 ").append(ASSIGN);
+                arrayAccessCode.append(".i32 ").append(node.getChild(0).getChild(1).getChild(0).get("name"));
+                arrayAccessCode.append("[");
+                if(createdAtLeastOneTemp)
+                    arrayAccessCode.append("tmp").append(this.counter-1).append(".i32");
+                else{
+                    if(node.getChild(0).getChild(1).getChild(1).getKind().equals("VarRefExpr")) {
+                        arrayAccessCode.append(node.getChild(0).getChild(1).getChild(1).get("name")).append(".i32");
+                    } else if(node.getChild(0).getChild(1).getChild(1).getKind().equals("BinaryOp") || node.getChild(0).getChild(1).getChild(1).getKind().equals("ArrayAccess")) {
+                        arrayAccessCode.append("tmp").append(this.counter-1).append(".i32");
+                    }
+                }
+                arrayAccessCode.append("].i32").append(END_STMT);
+                this.counter++;
+                code.append("tmp").append(this.counter-1).append(".i32");
+            }
+            else {
                 if(exprVisitor.getFlag())
                     code.append("$1.");
                 code.append(node.getChild(0).getChild(i).get("name"));
@@ -109,7 +187,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(END_STMT).append(NL);
 
 
-        return code.toString();
+        return arrayAccessCode.append(code).toString();
 
     }
 
@@ -528,17 +606,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(node.getChild(1).get("value")).append(".i32").append(END_STMT);
 
 
-
-        return code.toString();
-    }
-
-    private String helpImports(){
-        StringBuilder code = new StringBuilder();
-
-        for(String imprt : table.getImports()) {
-            int a = 1;
-            code.append("import ").append(imprt).append(";").append(NL);
-        }
 
         return code.toString();
     }
