@@ -35,6 +35,7 @@ public class JasminGenerator {
     int stackNum;
     int currStackNum;
     int callArgumentsNum;
+    int invokes = 0;
 
     Field field;
     ClassUnit classUnit;
@@ -258,8 +259,10 @@ public class JasminGenerator {
         this.currStackNum = 0;
         this.stackNum = 0;
 
-        code.append(TAB).append(".limit stack ").append(20).append(NL);
+        code.append(TAB).append(".limit stack ").append(STACK_PLACEHOLDER).append(NL);
         code.append(TAB).append(".limit locals ").append(vRegs.size()).append(NL);
+
+        this.invokes = 0;
 
         for (var inst : method.getInstructions()) {
             for(Map.Entry<String,Instruction> label : method.getLabels().entrySet()){
@@ -279,7 +282,33 @@ public class JasminGenerator {
 
         code.append(".end method\n");
 
-        String finalCode = code.toString().replace(STACK_PLACEHOLDER, String.valueOf(this.stackNum));
+        String tryStackCalc = code.toString();
+
+        String[] parts = tryStackCalc.split("[\t\n ]");
+
+        int stacks = 2;
+        for(String part: parts){
+            if(part.startsWith("iconst") || part.startsWith("bipush") || part.startsWith("ldc") || part.startsWith("sipush"))
+                stacks++;
+            else if(part.startsWith("istore") || part.startsWith("astore"))
+                stacks--;
+            else if(part.startsWith("iload") || part.startsWith("aload") || part.startsWith("dup"))
+                stacks++;
+            else if(part.startsWith("iadd") || part.startsWith("isub") || part.startsWith("idiv") || part.startsWith("imul"))
+                stacks--;
+            else if(part.startsWith("ixor"))
+                stacks++;
+            else if(part.startsWith("if_icmplt") || part.startsWith("if_icmpge"))
+                stacks-=2;
+            else if(part.startsWith("ifgt") || part.startsWith("ifle") || part.startsWith("ifge") || part.startsWith("ifne"))
+                stacks--;
+            else if(part.equals("new"))
+                stacks++;
+        }
+        stacks += this.invokes;
+
+
+        String finalCode = code.toString().replace(STACK_PLACEHOLDER, String.valueOf(stacks));
 
         // unset method
         currentMethod = null;
@@ -362,11 +391,19 @@ public class JasminGenerator {
 
         if(elemType == ElementType.INT32 || elemType == ElementType.BOOLEAN){
             //this.pushStack(1);
-            return code.append("istore ").append(reg).append(NL).toString();
+            if(reg < 4)
+                code.append("istore_");
+            else
+                code.append("istore ");
+            return code.append(reg).append(NL).toString();
         }
         else if (elemType == ElementType.OBJECTREF || elemType == ElementType.ARRAYREF || elemType == ElementType.STRING || elemType == ElementType.THIS){
             this.popStack(1);
-            return code.append("astore ").append(reg).append(NL).toString();
+            if(reg < 4)
+                code.append("astore").append("_");
+            else
+                code.append("astore ");
+            return code.append(reg).append(NL).toString();
         }
         else
             return "Error in generate assign!";
@@ -424,8 +461,15 @@ public class JasminGenerator {
             if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
                 this.callArgumentsNum--;
 
+            if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
+               this.invokes++;
+
             for(Element ignored : callInstruction.getOperands())
                 this.callArgumentsNum++;
+
+            for(int i = 0; i < callInstruction.getArguments().size(); i++){
+                this.invokes--;
+            }
 
             for (var argument : callInstruction.getArguments())
                 code.append(generators.apply(argument));
@@ -463,6 +507,13 @@ public class JasminGenerator {
 
             for(Element ignored : callInstruction.getOperands())
                 this.callArgumentsNum++;
+
+            if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
+                this.invokes++;
+
+            for(int i = 0; i < callInstruction.getArguments().size(); i++){
+                this.invokes--;
+            }
 
             if (callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS)
                 className = ((ClassType) callInstruction.getCaller().getType()).getName();
@@ -505,6 +556,13 @@ public class JasminGenerator {
 
             for(Element ignored : callInstruction.getOperands())
                 this.callArgumentsNum++;
+
+            if(!(callInstruction.getReturnType().getTypeOfElement() == ElementType.VOID))
+                this.invokes++;
+
+            for(int i = 0; i < callInstruction.getArguments().size(); i++){
+                this.invokes--;
+            }
 
             String className;
 
