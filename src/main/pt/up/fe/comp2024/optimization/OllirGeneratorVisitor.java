@@ -56,14 +56,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private String visitWhile(JmmNode node, Void unused) {
-
         StringBuilder code = new StringBuilder();
 
         JmmNode binOpExpr = node.getChild(0);
         JmmNode dentroWhile = node.getChild(1);
 
         var assigns = exprVisitor.visit(binOpExpr);
-
         code.append(assigns.getComputation());
         //same que o if basicamente so q com o while assigns
         code.append("if(");
@@ -71,12 +69,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(") goto " + OptUtils.getWhileCount());
         code.append(END_STMT);
         code.append(NL);
-
-
         code.append("goto ").append("end").append(OptUtils.getWhileCount());
         code.append(END_STMT);
         code.append(NL);
-
         code.append(OptUtils.getWhileCount() + ":"); // hard coded disto tudo ?
         code.append(NL);
 
@@ -101,7 +96,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         JmmNode sec_child = node.getChild(2);
 
         var assigns = exprVisitor.visit(binOpExpr); // sacar os .bools e assigns todos (a expressao basicamente)
-
         code.append(assigns.getComputation()); //debug
         code.append("if(");
         code.append(assigns.getCode());
@@ -116,7 +110,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append("goto ").append("end" + OptUtils.getIfCount());
         code.append(END_STMT);
         code.append(NL);
-
         code.append(OptUtils.getIfCount() + ":");
         code.append(NL);
 
