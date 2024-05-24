@@ -100,6 +100,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var assigns = exprVisitor.visit(binOpExpr); // sacar os .bools e assigns todos (a expressao basicamente)
         code.append(assigns.getComputation()); //debug
         code.append("if(");
+        if(assigns.getCode().equals("a.i32")){
+            assigns.setCode("a.bool");
+        }
         code.append(assigns.getCode());
         code.append(") ");
         code.append("goto ");
